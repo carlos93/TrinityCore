@@ -4842,6 +4842,12 @@ void SpellMgr::LoadSpellInfoCorrections()
         });
     });
 
+    // Arcane Cleave
+    ApplySpellFix({ 372218 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(27); // 3 seconds
+    });
+
     // ENDOF THE AZURE VAULT SPELLS
     //
     // Summon Master Li Fei

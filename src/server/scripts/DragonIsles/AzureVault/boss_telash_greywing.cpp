@@ -30,6 +30,7 @@
 #include "SpellScript.h"
 #include "SpellAuras.h"
 #include "SharedDefines.h"
+#include "TemporarySummon.h"
 #include "azure_vault.h"
 
 enum TelashSpells
@@ -70,6 +71,7 @@ enum TelashSummonGroups
 enum TelashActions
 {
     ACTION_RESCHEDULE_SPELLS = 1,
+    ACTION_SINDRAGOSA_AFTER_TELASH = 9
 };
 
 enum TelashText
@@ -83,6 +85,7 @@ enum TelashText
 };
 
 Position const TelashJumpPosition = { -5336.8003f, 1066.6493f, 344.32678f };
+const Position SindragosaOutroPosition = {-5324.067f, 1039.1294f, 339.738f, 0.3521f};
 
 Position const TelashJumpBackPositions[] =
 {
@@ -128,6 +131,12 @@ struct boss_telash_greywing : public BossAI
     {
         _JustDied();
         Talk(SAY_DEATH);
+
+        TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA, SindragosaOutroPosition, TEMPSUMMON_MANUAL_DESPAWN);
+        if (!sindragosa || !sindragosa->GetAI())
+            return;
+
+        sindragosa->GetAI()->DoAction(ACTION_SINDRAGOSA_AFTER_TELASH);
     }
 
     void MovementInform(uint32 /*type*/, uint32 id) override

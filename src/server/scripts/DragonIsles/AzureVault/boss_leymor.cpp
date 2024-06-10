@@ -93,8 +93,11 @@ enum LeymorNpcs
 
 enum LeymorActions
 {
-    ACTION_ARCANE_TENDER_DEATH          = 1
+    ACTION_ARCANE_TENDER_DEATH          = 1,
+    ACTION_SINDRAGOSA_AFTER_LEYMOR      = 4,
 };
+
+const Position SindragosaAfterLeymorPosition = {-5074.731f, 1204.691f, 556.35754f, 1.6300f};
 
 // 186644 - Leymor
 struct boss_leymor : public BossAI
@@ -134,6 +137,12 @@ struct boss_leymor : public BossAI
     {
         _JustDied();
         instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
+
+        TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA, SindragosaAfterLeymorPosition, TEMPSUMMON_MANUAL_DESPAWN);
+        if (!sindragosa || !sindragosa->GetAI())
+            return;
+
+        sindragosa->GetAI()->DoAction(ACTION_SINDRAGOSA_AFTER_LEYMOR);
     }
 
     void EnterEvadeMode(EvadeReason /*why*/) override

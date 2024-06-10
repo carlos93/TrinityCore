@@ -27,6 +27,7 @@
 #include "ClientConfigPackets.h"
 #include "Common.h"
 #include "Conversation.h"
+#include "ConversationDataStore.h"
 #include "Corpse.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
@@ -1159,7 +1160,28 @@ void WorldSession::HandleCloseInteraction(WorldPackets::Misc::CloseInteraction& 
 void WorldSession::HandleConversationLineStarted(WorldPackets::Misc::ConversationLineStarted& conversationLineStarted)
 {
     if (Conversation* convo = ObjectAccessor::GetConversation(*_player, conversationLineStarted.ConversationGUID))
+    {
+        // ConversationLineEntry const* convoLine = sConversationLineStore.LookupEntry(conversationLineStarted.LineID);
+        // if (!convoLine)
+        //     return;
+
+        // if (convoLine->StartAnimation)
+        // {
+        //     AnimationDataEntry const* animationData = sAnimationDataStore.LookupEntry(convoLine->StartAnimation);
+        //     if (animationData)
+        //         return;
+
+        //     ConversationLineTemplate const* conversationLineTemplate = sConversationDataStore->GetConversationLineTemplate(conversationLineStarted.LineID);
+        //     if (!conversationLineTemplate)
+        //         return;
+
+        //     Unit* unit = convo->GetActorUnit(conversationLineTemplate->ActorIdx);
+        //     if (unit)
+        //         unit->HandleEmoteCommand(animationData->ID);
+        // }
+
         sScriptMgr->OnConversationLineStarted(convo, conversationLineStarted.LineID, _player);
+    }
 }
 
 void WorldSession::HandleRequestLatestSplashScreen(WorldPackets::Misc::RequestLatestSplashScreen& /*requestLatestSplashScreen*/)

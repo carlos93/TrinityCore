@@ -36,9 +36,11 @@ ObjectData const creatureData[] =
 
 DoorData const doorData[] =
 {
-    { GO_ARCANE_VAULTS_DOOR_LEYMOR_ENTRANCE,    DATA_LEYMOR,  EncounterDoorBehavior::OpenWhenNotInProgress },
-    { GO_ARCANE_VAULTS_DOOR_LEYMOR_EXIT,        DATA_LEYMOR,  EncounterDoorBehavior::OpenWhenDone },
-    { 0,                                        0,            EncounterDoorBehavior::OpenWhenNotInProgress }  // END
+    { GO_ARCANE_VAULTS_DOOR_LEYMOR_ENTRANCE,    DATA_LEYMOR,        EncounterDoorBehavior::OpenWhenNotInProgress },
+    { GO_ARCANE_VAULTS_DOOR_LEYMOR_EXIT,        DATA_LEYMOR,        EncounterDoorBehavior::OpenWhenDone },
+    { GO_AZUREBLADE_ENTER,                      DATA_AZUREBLADE,    EncounterDoorBehavior::OpenWhenNotInProgress },
+    { GO_AZUREBLADE_EXIT,                       DATA_AZUREBLADE,    EncounterDoorBehavior::OpenWhenDone },
+    { 0,                                        0,                  EncounterDoorBehavior::OpenWhenNotInProgress }  // END
 };
 
 DungeonEncounterData const encounters[] =
@@ -66,6 +68,15 @@ class instance_azure_vault : public InstanceMapScript
                 LoadDungeonEncounterData(encounters);
 
                 _leymorIntroDone = false;
+                _sindragosaIntroDone = false;
+                _sindragosaSunderedFlameDone = false;
+                _sindragosaBeforeLeymorDone = false;
+                _sindragosaWildMagicDone = false;
+                _sindragosaBooksDone = false;
+                _sindragosaBeforeTelashDone = false;
+                _sindragosaBeforeUmbrelskulDone = false;
+                _azurebladeIntroDone = false;
+                _umbrelskulIntroDone = false;
             }
 
             uint32 GetData(uint32 dataId) const override
@@ -74,6 +85,24 @@ class instance_azure_vault : public InstanceMapScript
                 {
                     case DATA_LEYMOR_INTRO_DONE:
                         return _leymorIntroDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_INTRO_DONE:
+                        return _sindragosaIntroDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_SUNDERED_FLAME_DONE:
+                        return _sindragosaSunderedFlameDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_BEFORE_LEYMOR_DONE:
+                        return _sindragosaBeforeLeymorDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_WILD_MAGIC_DONE:
+                        return _sindragosaWildMagicDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_BOOKS_DONE:
+                        return _sindragosaBooksDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_BEFORE_TELASH_DONE:
+                        return _sindragosaBeforeTelashDone ? 1 : 0;
+                    case DATA_SINDRAGOSA_BEFORE_UMBRELSKUL_DONE:
+                        return _sindragosaBeforeUmbrelskulDone ? 1 : 0;
+                    case DATA_AZUREBLADE_INTRO_DONE:
+                        return _azurebladeIntroDone ? 1 : 0;
+                    case DATA_UMBRELSKUL_INTRO_DONE:
+                        return _umbrelskulIntroDone ? 1 : 0;
                     default:
                         break;
                 }
@@ -87,6 +116,33 @@ class instance_azure_vault : public InstanceMapScript
                     case DATA_LEYMOR_INTRO_DONE:
                         _leymorIntroDone = true; // no need to pass value, it will never reset to false
                         break;
+                    case DATA_SINDRAGOSA_INTRO_DONE:
+                        _sindragosaIntroDone = true;
+                        break;
+                    case DATA_SINDRAGOSA_SUNDERED_FLAME_DONE:
+                        _sindragosaSunderedFlameDone = true;
+                        break;
+                    case DATA_SINDRAGOSA_BEFORE_LEYMOR_DONE:
+                        _sindragosaBeforeLeymorDone = true;
+                        break;
+                    case DATA_SINDRAGOSA_WILD_MAGIC_DONE:
+                        _sindragosaWildMagicDone = true;
+                        break;
+                    case DATA_SINDRAGOSA_BOOKS_DONE:
+                        _sindragosaBooksDone = true;
+                        break;
+                    case DATA_SINDRAGOSA_BEFORE_TELASH_DONE:
+                        _sindragosaBeforeTelashDone = true;
+                        break;
+                    case DATA_SINDRAGOSA_BEFORE_UMBRELSKUL_DONE:
+                        _sindragosaBeforeUmbrelskulDone = true;
+                        break;
+                    case DATA_AZUREBLADE_INTRO_DONE:
+                        _azurebladeIntroDone = true;
+                        break;
+                    case DATA_UMBRELSKUL_INTRO_DONE:
+                        _umbrelskulIntroDone = true;
+                        break;
                     default:
                         break;
                 }
@@ -94,6 +150,15 @@ class instance_azure_vault : public InstanceMapScript
 
         private:
             bool _leymorIntroDone;
+            bool _sindragosaIntroDone;
+            bool _sindragosaSunderedFlameDone;
+            bool _sindragosaBeforeLeymorDone;
+            bool _sindragosaWildMagicDone;
+            bool _sindragosaBooksDone;
+            bool _sindragosaBeforeTelashDone;
+            bool _sindragosaBeforeUmbrelskulDone;
+            bool _azurebladeIntroDone;
+            bool _umbrelskulIntroDone;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const override
