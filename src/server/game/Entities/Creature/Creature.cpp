@@ -2157,11 +2157,11 @@ float Creature::GetAttackDistance(Unit const* player) const
         aggroRadius += player->GetTotalAuraModifier(SPELL_AURA_MOD_DETECTED_RANGE);
     }
 
-    // The aggro range of creatures with higher levels than the total player level for the expansion should get the maxlevel treatment
-    // This makes sure that creatures such as bosses wont have a bigger aggro range than the rest of the npc's
-    // The following code is used for blizzlike behaviour such as skippable bosses
-    if (creatureLevel > expansionMaxLevel)
-        aggroRadius = baseAggroDistance + float(expansionMaxLevel - playerLevel);
+    // // The aggro range of creatures with higher levels than the total player level for the expansion should get the maxlevel treatment
+    // // This makes sure that creatures such as bosses wont have a bigger aggro range than the rest of the npc's
+    // // The following code is used for blizzlike behaviour such as skippable bosses
+    // if (creatureLevel > expansionMaxLevel)
+    //     aggroRadius = baseAggroDistance + float(expansionMaxLevel - playerLevel);
 
     // Make sure that we wont go over the total range limits
     if (aggroRadius > maxRadius)
