@@ -357,7 +357,7 @@ SET @ENTRY := 196102;
 UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `entry` = @ENTRY;
 DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
-(@ENTRY, 0, 0, 0, '', 0, 0, 100, 0, 5000, 10000, 12000, 18000, 11, 387564, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Every 12 - 18 seconds (5 - 10s initially) - Self: Cast spell  387564 on Self');
+(@ENTRY, 0, 0, 0, '', 0, 0, 100, 0, 5000, 10000, 20000, 24000, 11, 387564, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Every 20 - 24 seconds (5 - 10s initially) (IC) - Self: Cast spell  387564 on Self');
 
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 196102 AND `SourceId` = 0;
@@ -380,7 +380,7 @@ DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
 (@ENTRY, 0, 0, 1, '', 25, 0, 100, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On reset - Self: Set react state to Passive'),
 (@ENTRY, 0, 1, 0, '', 61, 0, 100, 0, 0, 0, 0, 0, 11, 370223, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On reset - Self: Cast spell  370223 on Self'),
-(@ENTRY, 0, 2, 0, '', 83, 0, 100, 0, 370225, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spell 370225 cast - Self: Set react state to Aggressive');
+(@ENTRY, 0, 2, 0, '', 83, 0, 100, 0, 397726, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spell 397726 cast - Self: Set react state to Aggressive');
 
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 187159 AND `SourceId` = 0;
@@ -391,11 +391,16 @@ UPDATE `creature_template` SET `AIName` = 'SmartAI', `ScriptName` = '' WHERE `en
 DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
 (@ENTRY, 0, 0, 1, '', 25, 0, 100, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On reset - Self: Set react state to Passive'),
-(@ENTRY, 0, 1, 0, '', 83, 0, 100, 0, 370225, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spell 370225 cast - Self: Set react state to Aggressive'),
+(@ENTRY, 0, 1, 0, '', 83, 0, 100, 0, 397726, 0, 0, 0, 8, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'On spell 397726 cast - Self: Set react state to Aggressive'),
 (@ENTRY, 0, 2, 0, '', 1, 0, 100, 0, 0, 0, 20500, 20500, 11, 397215, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Every 20 seconds (0s initially) (OOC) - Self: Cast spell  397215 on Self');
 
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 188100 AND `SourceId` = 0;
+
+DELETE FROM `conditions` WHERE (`SourceTypeOrReferenceId` = 13) AND (`SourceEntry` IN (397726));
+INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`) VALUES 
+(13, 1, 397726, 0, 0, 31, 0, 3, 187160, 0, '', 0, 'Potential target of the spell is creature, entry is Crystal Fury (187160)'),
+(13, 1, 397726, 0, 1, 31, 0, 3, 187139, 0, '', 0, 'Potential target of the spell is creature, entry is Crystal Thrasher (187139)');
 
  -- Crystal Thrasher smart ai
 SET @ENTRY := 187139;

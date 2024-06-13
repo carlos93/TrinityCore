@@ -99,7 +99,8 @@ enum AzureVaultMisc
     POINT_WILD_MAGIC = 1,
     POINT_TELASH_RUN = 1,
 
-    NPC_TELASH_RP = 199614
+    NPC_TELASH_RP = 199614,
+    NPC_CRYSTAL_FURY = 187160
 };
 
 WaypointPath const SindragosaPath =
@@ -784,25 +785,15 @@ class spell_azure_vault_shriek : public SpellScript
         });
     }
 
-    void FilterTargets(std::list<WorldObject*>& targets)
-    {
-        if (targets.empty())
-            return;
-
-        targets.remove_if([](WorldObject* target) -> bool
-        {
-            return !target->IsUnit() || !target->ToUnit()->HasAura(SPELL_READY_DEFENSE);
-        });
-    }
-
     void HandleHitTarget(SpellEffIndex /*effIndex*/)
     {
         GetHitUnit()->RemoveAurasDueToSpell(SPELL_READY_DEFENSE);
+        if (GetHitCreature())
+            GetHitCreature()->EngageWithTarget(GetHitUnit()->SelectNearestPlayer(200.f));
     }
 
     void Register() override
     {
-        OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_azure_vault_shriek::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENTRY);
         OnEffectHitTarget += SpellEffectFn(spell_azure_vault_shriek::HandleHitTarget, EFFECT_0, SPELL_EFFECT_SCRIPT_EFFECT);
     }
 };
