@@ -38,11 +38,8 @@ void WorldSession::HandleRequestMythicPlusAffixes(WorldPackets::MythicPlus::Requ
     SendPacket(response.Write());
 }
 
-void WorldSession::HandleMythicPlusRequestMapStats(WorldPackets::MythicPlus::MythicPlusRequestMapStats& packet)
+void WorldSession::HandleMythicPlusRequestMapStats(WorldPackets::MythicPlus::MythicPlusRequestMapStats& /*packet*/)
 {
-    ObjectGuid bnetAccountGUID = packet.BnetAccountGUID;
-    ObjectGuid playerGUID = packet.GUID;
-
     WorldPackets::MythicPlus::MythicPlusAllMapStats response;
     response.Season = 12;
     response.Subseason = 94;
