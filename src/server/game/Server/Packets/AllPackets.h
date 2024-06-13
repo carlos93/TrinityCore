@@ -54,6 +54,7 @@
 #include "LootPackets.h"
 #include "MailPackets.h"
 #include "MiscPackets.h"
+#include "MythicPlusPackets.h"
 #include "MovementPackets.h"
 #include "NPCPackets.h"
 #include "PacketUtilities.h"

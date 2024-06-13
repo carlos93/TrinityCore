@@ -70,6 +70,16 @@ namespace WorldPackets
             std::array<int32, 4> KeystoneAffixIDs;
         };
 
+        struct MythicPlusReward
+        {
+            int32 Field_0 = 0;
+            int32 Field_4 = 0;
+            int64 Field_8 = 0;
+            int64 Field_10 = 0;
+            int64 Field_20 = 0;
+            bool Field_24 = false;
+        };
+
         struct DungeonScoreBestRunForAffix
         {
             int32 KeystoneAffixID = 0;
@@ -101,6 +111,8 @@ namespace WorldPackets
 
         ByteBuffer& operator<<(ByteBuffer& data, DungeonScoreSummary const& dungeonScoreSummary);
         ByteBuffer& operator<<(ByteBuffer& data, DungeonScoreData const& dungeonScoreData);
+        ByteBuffer& operator<<(ByteBuffer& data, MythicPlusRun const& mythicPlusRun);
+        ByteBuffer& operator<<(ByteBuffer& data, MythicPlusReward const& mythicPlusReward);
     }
 }
 

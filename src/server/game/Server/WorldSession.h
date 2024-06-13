@@ -845,6 +845,17 @@ namespace WorldPackets
         class WhoRequestPkt;
     }
 
+    namespace MythicPlus
+    {
+        class RequestMythicPlusSeasonData;
+        class MythicPlusSeasonData;
+        class RequestMythicPlusAffixes;
+        class MythicPlusCurrentAffixes;
+        class MythicPlusNewWeekRecord;
+        class MythicPlusAllMapStats;
+        class MythicPlusRequestMapStats;
+    }
+
     class Null;
 }
 
@@ -1477,6 +1488,11 @@ class TC_GAME_API WorldSession
         void HandleAutoBankReagentOpcode(WorldPackets::Bank::AutoBankReagent& autoBankRegent);
         void HandleAutoStoreBankReagentOpcode(WorldPackets::Bank::AutoStoreBankReagent& autoStoreBankReagent);
         void HandleReagentBankDepositOpcode(WorldPackets::Bank::ReagentBank& reagentBank);
+
+        // MythicPlus
+        void HandleRequestMythicPlusSeasonData(WorldPackets::MythicPlus::RequestMythicPlusSeasonData& packet);
+        void HandleRequestMythicPlusAffixes(WorldPackets::MythicPlus::RequestMythicPlusAffixes& packet);
+        void HandleMythicPlusRequestMapStats(WorldPackets::MythicPlus::MythicPlusRequestMapStats& packet);
 
         // Black Market
         void HandleBlackMarketOpen(WorldPackets::BlackMarket::BlackMarketOpen& blackMarketOpen);

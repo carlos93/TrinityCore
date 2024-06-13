@@ -81,6 +81,20 @@ ByteBuffer& operator<<(ByteBuffer& data, MythicPlusRun const& mythicPlusRun)
     return data;
 }
 
+ByteBuffer& operator<<(ByteBuffer& data, MythicPlusReward const& mythicPlusReward)
+{
+    data << int32(mythicPlusReward.Field_0);
+    data << int32(mythicPlusReward.Field_4);
+    data << int64(mythicPlusReward.Field_8);
+    data << int64(mythicPlusReward.Field_10);
+    data << int64(mythicPlusReward.Field_20);
+
+    data.WriteBit(mythicPlusReward.Field_24);
+    data.FlushBits();
+
+    return data;
+}
+
 ByteBuffer& operator<<(ByteBuffer& data, DungeonScoreBestRunForAffix const& dungeonScoreBestRunForAffix)
 {
     data << int32(dungeonScoreBestRunForAffix.KeystoneAffixID);
