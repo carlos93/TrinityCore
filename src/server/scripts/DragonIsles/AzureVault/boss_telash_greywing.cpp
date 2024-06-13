@@ -51,6 +51,7 @@ enum TelashSpells
     SPELL_VAULT_RUNE_AT_AURA                    = 388065,
     SPELL_VAULT_RUNE_SHIELD                     = 390201,
     SPELL_INACTIVE_VAULT_RUNE                   = 390238,
+    SPELL_BARRIER_COSMETIC_SMALL                = 387835,
 
     // Conversation
     SPELL_TELASH_APPROACH_CONV                  = 389379
@@ -66,6 +67,11 @@ enum TelashEvents
 enum TelashSummonGroups
 {
     SUMMON_GROUP_TELASH_VAULT_RUNES = 0
+};
+
+enum TelashNpcs
+{
+    NPC_COSMETIC_BARRIER_STALKER = 196211,
 };
 
 enum TelashActions
@@ -85,7 +91,6 @@ enum TelashText
 };
 
 Position const TelashJumpPosition = { -5336.8003f, 1066.6493f, 344.32678f };
-const Position SindragosaOutroPosition = {-5324.067f, 1039.1294f, 339.738f, 0.3521f};
 
 Position const TelashJumpBackPositions[] =
 {
@@ -132,7 +137,11 @@ struct boss_telash_greywing : public BossAI
         _JustDied();
         Talk(SAY_DEATH);
 
-        TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA, SindragosaOutroPosition, TEMPSUMMON_MANUAL_DESPAWN);
+        Creature* creature = me->FindNearestCreatureWithOptions(100.0f, { .CreatureId = NPC_COSMETIC_BARRIER_STALKER, .AuraSpellId = SPELL_BARRIER_COSMETIC_SMALL });
+        if (creature)
+            creature->KillSelf();
+
+        TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA, me->GetRandomNearPosition(5.0f), TEMPSUMMON_MANUAL_DESPAWN);
         if (!sindragosa || !sindragosa->GetAI())
             return;
 
@@ -152,6 +161,7 @@ struct boss_telash_greywing : public BossAI
             {
                 DoCastSelf(SPELL_POWER_ENERGIZE_ICE_POWER_PERIODIC);
                 me->RemoveAurasDueToSpell(SPELL_ABSOLUTE_ZERO_SHIELD);
+                me->SetDisableGravity(false, true);
                 me->SetReactState(REACT_AGGRESSIVE);
                 _isInCenter = false;
             }

@@ -4842,10 +4842,25 @@ void SpellMgr::LoadSpellInfoCorrections()
         });
     });
 
+    // Erratic Growth
+    ApplySpellFix({ 375596 }, [](SpellInfo* spellInfo)
+    {
+        spellInfo->RangeEntry = sSpellRangeStore.LookupEntry(23); // 40y
+    });
+
     // Arcane Cleave
     ApplySpellFix({ 372218 }, [](SpellInfo* spellInfo)
     {
         spellInfo->DurationEntry = sSpellDurationStore.LookupEntry(27); // 3 seconds
+    });
+
+    // Null Stomp
+    ApplySpellFix({ 386526 }, [](SpellInfo* spellInfo)
+    {
+        ApplySpellEffectFix(spellInfo, EFFECT_1, [](SpellEffectInfo* spellEffectInfo)
+        {
+            spellEffectInfo->TriggerSpell = 386536;
+        });
     });
 
     // ENDOF THE AZURE VAULT SPELLS

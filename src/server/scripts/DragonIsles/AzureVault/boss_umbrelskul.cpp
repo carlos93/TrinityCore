@@ -21,6 +21,7 @@
 #include "CreatureAI.h"
 #include "CreatureAIImpl.h"
 #include "InstanceScript.h"
+#include "PassiveAI.h"
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "SpellScript.h"
@@ -61,15 +62,25 @@ enum UmbrelskulSpells
     SPELL_UMBRELSKUL_CRYSTALLINE_ROAR_SUMMON = 384697,
     SPELL_UMBRELSKUL_CRYSTALLINE_ROAR = 384699,
 
+    SPELL_UMBRELSKUL_CONVERSATION_AFTER_UMBRELSKUL = 389371,
+
     SPELL_UMBRELSKUL_ENERGIZE = 394082,
 
     SPELL_UMBRELSKUL_DRAGON_SLEEPS = 385656,
+
+    SPELL_UMBRELSKUL_FRACTURE = 385331,
+};
+
+enum UmbrelskulActions
+{
+    ACTION_UMBRESKUL_INTRO = 1,
 };
 
 enum UmbrelskulNpcs
 {
     NPC_CRYSTALLINE_ROAR_TRIGGER = 194826,
     NPC_ARCANE_ERUPTION_TRIGGER = 194978,
+    NPC_SINDRAGOSA_2 = 188046,
 };
 
 enum UmbrelskulEvents
@@ -79,15 +90,17 @@ enum UmbrelskulEvents
     EVENT_CRYSTALLINE_ROAR,
     EVENT_CHECK_HP,
     EVENT_CHECK_ENERGY,
-    EVENT_CRACKLING_VORTEX_INIT
+    EVENT_CRACKLING_VORTEX_INIT,
+    EVENT_FRACTURE
 };
 
-enum UmbrelskulActions
+enum UmbrelskulSays
 {
-    ACTION_SINDRAGOSA_AFTER_UMBRESKUL = 10,
+    SAY_INTRO = 0,
+    SAY_AGGRO,
+    SAY_EVADE,
+    SAY_DEATH,
 };
-
-const Position SindragosaAfterUmbrelskulPosition = {-5305.152f, 1025.9412f, 158.74663f, 0.0f};
 
 // 186738 - Umbrelskul
 struct boss_umbrelskul : public BossAI
@@ -107,7 +120,7 @@ struct boss_umbrelskul : public BossAI
         BossAI::JustEngagedWith(who);
         instance->SendEncounterUnit(ENCOUNTER_FRAME_ENGAGE, me, 1);
 
-        DoCastSelf(SPELL_UMBRELSKUL_SAY_AGGRO);
+        Talk(SAY_AGGRO);
         DoCastSelf(SPELL_UMBRELSKUL_ENERGIZE);
 
         me->RemoveAurasDueToSpell(SPELL_UMBRELSKUL_DRAGON_SLEEPS);
@@ -127,36 +140,40 @@ struct boss_umbrelskul : public BossAI
         summons.DespawnAll();
         _EnterEvadeMode();
         _DespawnAtEvade();
+
+        Talk(SAY_EVADE);
     }
 
     void JustDied(Unit* /*killer*/) override
     {
         _JustDied();
 
-        TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA, SindragosaAfterUmbrelskulPosition, TEMPSUMMON_MANUAL_DESPAWN);
-        if (sindragosa && sindragosa->GetAI())
+        TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA_2, me->GetRandomNearPosition(20.0f), TEMPSUMMON_MANUAL_DESPAWN);
+        if (sindragosa)
         {
-            sindragosa->GetAI()->DoAction(ACTION_SINDRAGOSA_AFTER_UMBRESKUL);
+            sindragosa->CastSpell(sindragosa, SPELL_UMBRELSKUL_CONVERSATION_AFTER_UMBRELSKUL);
             sindragosa->SetFacingToObject(me);
         }
 
         DoCastSelf(SPELL_UMBRELSKUL_CLEAR_DRAGON_STRIKE_DEBUFF);
+        Talk(SAY_DEATH);
+    }
+
+    void DoAction(int32 actionId) override
+    {
+        switch (actionId)
+        {
+        case ACTION_UMBRESKUL_INTRO:
+            Talk(SAY_INTRO);
+            me->RemoveAurasDueToSpell(SPELL_UMBRELSKUL_DRAGON_SLEEPS);
+            instance->SetData(DATA_UMBRELSKUL_INTRO_DONE, true);
+            break;
+        }
     }
     
     void UpdateAI(uint32 diff) override
     {
         scheduler.Update(diff);
-
-        if (!instance->GetData(DATA_UMBRELSKUL_INTRO_DONE) && instance->GetBossState(DATA_TELASH_GREYWING) == DONE)
-        {
-            std::vector<Player*> players;
-            me->GetPlayerListInGrid(players, 70.0f);
-            if (players.size() > 0)
-            {
-                me->RemoveAurasDueToSpell(SPELL_UMBRELSKUL_DRAGON_SLEEPS);
-                instance->SetData(DATA_UMBRELSKUL_INTRO_DONE, true);
-            }
-        }
 
         if (!UpdateVictim())
             return;
@@ -261,6 +278,58 @@ private:
     EventMap _events;
 };
 
+// 195138 - Detonating Crystal
+// 199368 - Hardened Crystal
+struct npc_detonating_crystal : public PassiveAI
+{
+    npc_detonating_crystal(Creature* creature) : PassiveAI(creature) { }
+
+    void JustSummoned(Creature* summon) override
+    {
+        Creature* umbrelskul = me->GetInstanceScript()->GetCreature(DATA_UMBRELSKUL);
+        if (!umbrelskul)
+            return;
+
+        if (!umbrelskul->IsAIEnabled())
+            return;
+
+        umbrelskul->AI()->JustSummoned(summon);
+    }
+
+    void JustAppeared() override
+    {
+        me->SetReactState(REACT_PASSIVE);
+        _events.ScheduleEvent(EVENT_FRACTURE, 500ms);
+    }
+
+    void UpdateAI(uint32 diff) override
+    {
+        _events.Update(diff);
+
+        if (me->HasUnitState(UNIT_STATE_CASTING))
+            return;
+            
+        while (uint32 eventId = _events.ExecuteEvent())
+        {
+            switch (eventId)
+            {
+                case EVENT_FRACTURE:
+                    DoCastSelf(SPELL_UMBRELSKUL_FRACTURE);
+                    _events.ScheduleEvent(EVENT_FRACTURE, 20s);
+                    break;
+                default:
+                    break;
+
+                if (me->HasUnitState(UNIT_STATE_CASTING))
+                    return;
+            }
+        }
+    }
+
+private:
+    EventMap _events;
+};
+
 // 394082 - Energize
 class spell_umbrelskul_energize : public AuraScript
 {
@@ -277,6 +346,33 @@ class spell_umbrelskul_energize : public AuraScript
     void Register() override
     {
         OnEffectPeriodic += AuraEffectPeriodicFn(spell_umbrelskul_energize::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+    }
+};
+
+// 386746 - Brittle
+class spell_umbrelskul_brittle : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo(
+        {
+            SPELL_UMBRELSKUL_BRITTLE_DETONATING_CRYSTAL_SUMMON,
+            SPELL_UMBRELSKUL_BRITTLE_HARDENED_CRYSTAL_SUMMON
+        });
+    }
+
+    void HandleHitTarget(SpellEffIndex /*effIndex*/)
+    {
+        for (uint8 i = 0; i < 4; i++)
+            GetCaster()->CastSpell(GetHitUnit(), SPELL_UMBRELSKUL_BRITTLE_DETONATING_CRYSTAL_SUMMON);
+
+        if (GetCaster()->GetMap()->IsMythic() || GetCaster()->GetMap()->IsMythicPlus())
+            GetCaster()->CastSpell(GetHitUnit(), SPELL_UMBRELSKUL_BRITTLE_HARDENED_CRYSTAL_SUMMON);
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_umbrelskul_brittle::HandleHitTarget, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };
 
@@ -398,7 +494,7 @@ class spell_umbrelskul_crystalline_roar_dummy : public SpellScript
         Trinity::Containers::RandomResize(targets, 1);
     }
 
-    void HandleCast(SpellEffIndex /*effIndex*/)
+    void HandleHitTarget(SpellEffIndex /*effIndex*/)
     {
         GetCaster()->CastSpell(GetHitUnit(), SPELL_UMBRELSKUL_CRYSTALLINE_ROAR_SUMMON);
     }
@@ -406,7 +502,7 @@ class spell_umbrelskul_crystalline_roar_dummy : public SpellScript
     void Register() override
     {
         OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_umbrelskul_crystalline_roar_dummy::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
-        OnEffectHitTarget += SpellEffectFn(spell_umbrelskul_crystalline_roar_dummy::HandleCast, EFFECT_0, SPELL_EFFECT_DUMMY);
+        OnEffectHitTarget += SpellEffectFn(spell_umbrelskul_crystalline_roar_dummy::HandleHitTarget, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };
 
@@ -457,6 +553,7 @@ void AddSC_boss_umbrelskul()
     // Creatures
     RegisterAzureVaultCreatureAI(boss_umbrelskul);
     RegisterAzureVaultCreatureAI(npc_crackling_vortex);
+    RegisterAzureVaultCreatureAI(npc_detonating_crystal);
 
     // Spells
     RegisterSpellScript(spell_umbrelskul_energize);
@@ -465,6 +562,7 @@ void AddSC_boss_umbrelskul()
     RegisterSpellScript(spell_umbrelskul_arcane_eruption);
     RegisterSpellScript(spell_umbrelskul_arcane_eruption_dummy);
     RegisterSpellScript(spell_umbrelskul_arcane_eruption_summon);
+    RegisterSpellScript(spell_umbrelskul_brittle);
 
     // AreaTrigger
     RegisterAreaTriggerAI(at_umbrelskul_unleashed_destruction);

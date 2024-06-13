@@ -51,6 +51,8 @@ DungeonEncounterData const encounters[] =
     { DATA_UMBRELSKUL,      {{ 2584 }} },
 };
 
+Position const SindragosaEntrancePosition = { -5060.52f, 1025.55f, 594.534f, 5.741f };
+
 class instance_azure_vault : public InstanceMapScript
 {
     public:
@@ -77,6 +79,36 @@ class instance_azure_vault : public InstanceMapScript
                 _sindragosaBeforeUmbrelskulDone = false;
                 _azurebladeIntroDone = false;
                 _umbrelskulIntroDone = false;
+                _sindragosaSummonedAtEntrance = false;
+            }
+
+            void OnPlayerEnter(Player* /*player*/) override
+            {
+                if (!_sindragosaSummonedAtEntrance && (GetBossState(DATA_LEYMOR) == DONE || GetBossState(DATA_AZUREBLADE) == DONE || GetBossState(DATA_TELASH_GREYWING) == DONE))
+                {
+                    instance->SummonCreature(NPC_SINDRAGOSA_ENTRANCE, SindragosaEntrancePosition);
+                    _sindragosaSummonedAtEntrance = true;
+                } 
+            }
+
+            bool SetBossState(uint32 id, EncounterState state) override
+            {
+                switch (id)
+                {
+                case DATA_LEYMOR:
+                case DATA_AZUREBLADE:
+                case DATA_TELASH_GREYWING:
+                    if (!_sindragosaSummonedAtEntrance && state == EncounterState::DONE)
+                    {
+                        instance->SummonCreature(NPC_SINDRAGOSA_ENTRANCE, SindragosaEntrancePosition);
+                        _sindragosaSummonedAtEntrance = true;
+                    }
+                    break;
+                default:
+                    break;
+                }
+
+                return InstanceScript::SetBossState(id, state);
             }
 
             uint32 GetData(uint32 dataId) const override
@@ -97,8 +129,6 @@ class instance_azure_vault : public InstanceMapScript
                         return _sindragosaBooksDone ? 1 : 0;
                     case DATA_SINDRAGOSA_BEFORE_TELASH_DONE:
                         return _sindragosaBeforeTelashDone ? 1 : 0;
-                    case DATA_SINDRAGOSA_BEFORE_UMBRELSKUL_DONE:
-                        return _sindragosaBeforeUmbrelskulDone ? 1 : 0;
                     case DATA_AZUREBLADE_INTRO_DONE:
                         return _azurebladeIntroDone ? 1 : 0;
                     case DATA_UMBRELSKUL_INTRO_DONE:
@@ -134,9 +164,6 @@ class instance_azure_vault : public InstanceMapScript
                     case DATA_SINDRAGOSA_BEFORE_TELASH_DONE:
                         _sindragosaBeforeTelashDone = true;
                         break;
-                    case DATA_SINDRAGOSA_BEFORE_UMBRELSKUL_DONE:
-                        _sindragosaBeforeUmbrelskulDone = true;
-                        break;
                     case DATA_AZUREBLADE_INTRO_DONE:
                         _azurebladeIntroDone = true;
                         break;
@@ -159,6 +186,7 @@ class instance_azure_vault : public InstanceMapScript
             bool _sindragosaBeforeUmbrelskulDone;
             bool _azurebladeIntroDone;
             bool _umbrelskulIntroDone;
+            bool _sindragosaSummonedAtEntrance;
         };
 
         InstanceScript* GetInstanceScript(InstanceMap* map) const override

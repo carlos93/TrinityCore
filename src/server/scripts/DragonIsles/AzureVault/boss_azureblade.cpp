@@ -468,6 +468,7 @@ struct at_azureblade_before_conversation : AreaTriggerAI
             return;
 
         azureblade->CastSpell(azureblade, SPELL_AZUREBLADE_CONVERSATION_INTRO);
+        at->GetInstanceScript()->SetData(DATA_AZUREBLADE_INTRO_DONE, true);
     }
 };
 
