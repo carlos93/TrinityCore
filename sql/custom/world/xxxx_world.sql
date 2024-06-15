@@ -1,4 +1,5 @@
 update `creature_template` set `ScriptName` = 'boss_azureblade' where `entry` = 186739;
+update `creature_template` set `ScriptName` = 'boss_umbrelskul' where `entry` = 186738;
 update `creature_template` set `ScriptName` = 'npc_draconic_image' where `entry` = 190187;
 update `creature_template` set `ScriptName` = 'npc_draconic_illusion' where `entry` = 192955;
 update `creature_template` set `ScriptName` = 'npc_azure_vault_sindragosa' where `entry` = 187482;
@@ -15,13 +16,21 @@ UPDATE `creature_template` set `ScriptName` = 'npc_book_of_translocation' where 
 UPDATE `creature_template` set `ScriptName` = 'npc_book_of_translocation' where `entry` = 195434;
 UPDATE `creature_template` set `ScriptName` = 'npc_book_of_translocation' where `entry` = 194715;
 UPDATE `creature_template` set `ScriptName` = 'npc_book_of_translocation' where `entry` = 199545;
+
 update `creature_template` set `faction` = 16 where `entry` = 196116;
 update `creature_template` set `faction` = 16 where `entry` = 196116;
 update `creature_template` set `AIName` = 'PassiveAI' where `entry` = 194826;
 update `creature_template` set `AIName` = 'PassiveAI' where `entry` = 194978;
-update `creature_template` set `ScriptName` = 'boss_umbrelskul' where `entry` = 186738;
+update `creature_template` set `AIName` = 'PassiveAI' where `entry` = 171322;
 update `creature_template_addon` set `Auras` = '394104' where `entry` = 186738;
 
+
+DELETE FROM `scenarios` WHERE (`map`=2515 AND `difficulty` IN (1,2,8,23));
+INSERT INTO scenarios (`map`, difficulty, scenario_A, scenario_H) values
+(2515, 1, 2089, 2089),
+(2515, 2, 2090, 2090),
+(2515, 8, 2133, 2133),
+(2515, 23, 2091, 2091);
 
 SET @NPCTEXTID = 590113;
 DELETE FROM `npc_text` WHERE `ID` BETWEEN @NPCTEXTID+0 AND @NPCTEXTID+1;
@@ -57,16 +66,16 @@ INSERT INTO `gossip_menu` (`MenuID`, `TextID`, `VerifiedBuild`) VALUES
 
 DELETE FROM `gossip_menu_option` WHERE (`OptionID`=0 AND `MenuID` IN (27896,28963,29237,29236,29011,29009,28961,29759,29013,29012,30271)) OR (`OptionID`=2 AND `MenuID`=29759) OR (`OptionID`=1 AND `MenuID`=29759);
 INSERT INTO `gossip_menu_option` (`MenuID`, `GossipOptionID`, `OptionID`, `OptionNpc`, `OptionText`, `OptionBroadcastTextID`, `Language`, `Flags`, `ActionMenuID`, `ActionPoiID`, `GossipNpcOptionID`, `BoxCoded`, `BoxMoney`, `BoxText`, `BoxBroadcastTextID`, `SpellID`, `OverrideIconID`, `VerifiedBuild`) VALUES
+(29759, 107451, 0, 0, 'Take me to the Arcane Conservatory.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
+(29759, 107092, 1, 0, 'Take me to the Mausoleum of Legends.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
+(29759, 107093, 2, 0, 'Take me to the Crystal Chambers.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (27896, 54920, 0, 0, 'I\'m ready.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (28963, 56057, 0, 0, 'Return back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (29237, 56379, 0, 0, 'Return back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (29236, 56378, 0, 0, 'Return back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
-(29759, 107093, 2, 0, 'Take me to the Crystal Chambers.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (29011, 56248, 0, 0, 'Proceed onward.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (29009, 56247, 0, 0, 'Proceed onward.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
-(29759, 107092, 1, 0, 'Take me to the Mausoleum of Legends.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (28961, 56056, 0, 0, 'Proceed onward.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
-(29759, 107451, 0, 0, 'Take me to the Arcane Conservatory.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (29013, 56251, 0, 0, 'Proceed onward.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (29012, 56250, 0, 0, 'Proceed onward.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988),
 (30271, 107756, 0, 0, 'Return back.', 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0, NULL, NULL, 54988);
@@ -110,7 +119,7 @@ INSERT INTO `spell_script_names` values
 (389248, 'spell_azureblade_arcane_mana');
 
 
-DELETE FROM `creature_template_addon` WHERE (`entry` IN (194602,194618,194712,194713,194714,194715,195432,195434,199545,197081, 195638, 191739, 188100, 187159, 196102, 199368, 195138, 194978, 194806));
+DELETE FROM `creature_template_addon` WHERE (`entry` IN (186739, 194602,194618,194712,194713,194714,194715,195432,195434,199545,197081, 195638, 191739, 188100, 187159, 196102, 199368, 195138, 194978, 194806));
 INSERT INTO `creature_template_addon` (entry, PathId, mount, MountCreatureID, StandState, AnimTier, VisFlags, SheathState, PvPFlags, emote, aiAnimKit, movementAnimKit, meleeAnimKit, visibilityDistanceType, auras) values
 (194602, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '384094'),
 (194618, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '384094'),
@@ -121,6 +130,7 @@ INSERT INTO `creature_template_addon` (entry, PathId, mount, MountCreatureID, St
 (195432, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '384094'),
 (195434, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '384094'),
 (199545, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '384094'),
+(186739, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '389340 377039'),
 (197081, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '389786'),
 (191739, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '377980 18950'),
 (199368, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, '396384 396361'),
@@ -506,15 +516,6 @@ DELETE FROM `smart_scripts` WHERE `source_type` = 0 AND `entryOrGuid` = @ENTRY;
 INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `Difficulties`, `event_type`, `event_phase_mask`, `event_chance`, `event_flags`, `event_param1`, `event_param2`, `event_param3`, `event_param4`, `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`, `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_x`, `target_y`, `target_z`, `target_o`, `comment`) VALUES 
 (@ENTRY, 0, 0, 0, '', 0, 0, 100, 0, 7500, 12500, 10000, 15000, 11, 396991, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'Every 10 - 15 seconds (7.5 - 12.5s initially) (IC) - Self: Cast spell  396991 on Self'),
 (@ENTRY, 0, 1, 0, '', 0, 0, 100, 0, 5000, 10000, 10000, 15000, 11, 391136, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 'Every 10 - 15 seconds (5 - 10s initially) (IC) - Self: Cast spell  391136 on Random hostile');
-
-
-DELETE FROM `creature_text` WHERE (`CreatureID` IN (186739));
-INSERT INTO `creature_text` (`CreatureID`, `GroupID`, `ID`, `Text`, `Type`, `Language`, `Probability`, `Emote`, `Duration`, `Sound`, `BroadcastTextId`, `TextRange`, `comment`) VALUES
-(@ENTRY, 0, 0, 'No no no! Mine, it is all mine!', 14, 0, 100, 0, 0, 206980, 229360, 0, 'Azureblade'),
-(@ENTRY, 1, 0, 'Shred you!', 14, 0, 100, 0, 0, 206964, 229366, 0, 'Azureblade'),
-(@ENTRY, 1, 1, 'Slash you!', 14, 0, 100, 0, 0, 206963, 229365, 0, 'Azureblade'),
-(@ENTRY, 2, 0, 'My treasures!', 14, 0, 100, 0, 0, 206962, 229368, 0, 'Azureblade');
-
 
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 22 AND `SourceEntry` = 187240 AND `SourceId` = 0;
 
