@@ -3906,9 +3906,13 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
                     stmt->setUInt64(0, guid);
                     PreparedQueryResult azeriteEmpoweredItemResult = CharacterDatabase.Query(stmt);
 
+                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_MAILITEMS_KEYSTONE);
+                    stmt->setUInt64(0, guid);
+                    PreparedQueryResult keystoneItemResult = CharacterDatabase.Query(stmt);
+
                     std::unordered_map<ObjectGuid::LowType, ItemAdditionalLoadInfo> additionalData;
                     ItemAdditionalLoadInfo::Init(&additionalData, artifactResult, azeriteResult, azeriteItemMilestonePowersResult,
-                        azeriteItemUnlockedEssencesResult, azeriteEmpoweredItemResult);
+                        azeriteItemUnlockedEssencesResult, azeriteEmpoweredItemResult, keystoneItemResult);
 
                     do
                     {
@@ -4117,6 +4121,10 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             trans->Append(stmt);
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_ARTIFACT_POWERS_BY_OWNER);
+            stmt->setUInt64(0, guid);
+            trans->Append(stmt);
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_KEYSTONE_BY_OWNER);
             stmt->setUInt64(0, guid);
             trans->Append(stmt);
 
@@ -18209,6 +18217,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE_MILESTONE_POWERS),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE_UNLOCKED_ESSENCES),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_AZERITE_EMPOWERED),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_KEYSTONE),
         time_diff);
 
     if (IsVoidStorageUnlocked())
@@ -18226,7 +18235,8 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS_AZERITE),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS_AZERITE_MILESTONE_POWER),
         holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS_AZERITE_UNLOCKED_ESSENCE),
-        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS_AZERITE_EMPOWERED));
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS_AZERITE_EMPOWERED),
+        holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_MAIL_ITEMS_KEYSTONE));
 
     m_social = sSocialMgr->LoadFromDB(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_SOCIAL_LIST), GetGUID());
 
@@ -18668,7 +18678,7 @@ void Player::LoadCorpse(PreparedQueryResult result)
 
 void Player::_LoadInventory(PreparedQueryResult result, PreparedQueryResult artifactsResult, PreparedQueryResult azeriteResult,
     PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult,
-    PreparedQueryResult azeriteEmpoweredItemResult, uint32 timeDiff)
+    PreparedQueryResult azeriteEmpoweredItemResult, PreparedQueryResult keystoneItemResult, uint32 timeDiff)
 {
     //           0          1            2                3      4         5        6      7             8                  9          10          11          12    13
     // SELECT guid, itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomBonusListId, durability, playedTime, createTime, text,
@@ -18704,7 +18714,7 @@ void Player::_LoadInventory(PreparedQueryResult result, PreparedQueryResult arti
 
     std::unordered_map<ObjectGuid::LowType, ItemAdditionalLoadInfo> additionalData;
     ItemAdditionalLoadInfo::Init(&additionalData, artifactsResult, azeriteResult, azeriteItemMilestonePowersResult,
-        azeriteItemUnlockedEssencesResult, azeriteEmpoweredItemResult);
+        azeriteItemUnlockedEssencesResult, azeriteEmpoweredItemResult, keystoneItemResult);
 
     if (result)
     {
@@ -18722,19 +18732,22 @@ void Player::_LoadInventory(PreparedQueryResult result, PreparedQueryResult arti
             Field* fields = result->Fetch();
             if (Item* item = _LoadItem(trans, zoneId, timeDiff, fields))
             {
-                if (ItemAdditionalLoadInfo* addionalDataPtr = Trinity::Containers::MapGetValuePtr(additionalData, fields[0].GetUInt64()))
+                if (ItemAdditionalLoadInfo* additionalDataPrt = Trinity::Containers::MapGetValuePtr(additionalData, fields[0].GetUInt64()))
                 {
-                    if (item->GetTemplate()->GetArtifactID() && addionalDataPtr->Artifact)
-                        item->LoadArtifactData(this, addionalDataPtr->Artifact->Xp, addionalDataPtr->Artifact->ArtifactAppearanceId,
-                            addionalDataPtr->Artifact->ArtifactTierId, addionalDataPtr->Artifact->ArtifactPowers);
+                    if (item->GetTemplate()->GetArtifactID() && additionalDataPrt->Artifact)
+                        item->LoadArtifactData(this, additionalDataPrt->Artifact->Xp, additionalDataPrt->Artifact->ArtifactAppearanceId,
+                            additionalDataPrt->Artifact->ArtifactTierId, additionalDataPrt->Artifact->ArtifactPowers);
 
-                    if (addionalDataPtr->AzeriteItem)
+                    if (additionalDataPrt->AzeriteItem)
                         if (AzeriteItem* azeriteItem = item->ToAzeriteItem())
-                            azeriteItem->LoadAzeriteItemData(this, *addionalDataPtr->AzeriteItem);
+                            azeriteItem->LoadAzeriteItemData(this, *additionalDataPrt->AzeriteItem);
 
-                    if (addionalDataPtr->AzeriteEmpoweredItem)
+                    if (additionalDataPrt->AzeriteEmpoweredItem)
                         if (AzeriteEmpoweredItem* azeriteEmpoweredItem = item->ToAzeriteEmpoweredItem())
-                            azeriteEmpoweredItem->LoadAzeriteEmpoweredItemData(this, *addionalDataPtr->AzeriteEmpoweredItem);
+                            azeriteEmpoweredItem->LoadAzeriteEmpoweredItemData(this, *additionalDataPrt->AzeriteEmpoweredItem);
+
+                    if (additionalDataPrt->KeystoneItem)
+                        item->LoadKeystoneData(*additionalDataPrt->KeystoneItem);
                 }
 
                 ObjectGuid bagGuid = fields[52].GetUInt64() ? ObjectGuid::Create<HighGuid::Item>(fields[52].GetUInt64()) : ObjectGuid::Empty;
@@ -19119,7 +19132,7 @@ Item* Player::_LoadMailedItem(ObjectGuid const& playerGuid, Player* player, uint
 }
 
 void Player::_LoadMail(PreparedQueryResult mailsResult, PreparedQueryResult mailItemsResult, PreparedQueryResult artifactResult, PreparedQueryResult azeriteItemResult,
-    PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult)
+    PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult, PreparedQueryResult keystoneItemResult)
 {
     std::unordered_map<uint64, Mail*> mailById;
 
@@ -19162,7 +19175,7 @@ void Player::_LoadMail(PreparedQueryResult mailsResult, PreparedQueryResult mail
     {
         std::unordered_map<ObjectGuid::LowType, ItemAdditionalLoadInfo> additionalData;
         ItemAdditionalLoadInfo::Init(&additionalData, artifactResult, azeriteItemResult, azeriteItemMilestonePowersResult,
-            azeriteItemUnlockedEssencesResult, azeriteEmpoweredItemResult);
+            azeriteItemUnlockedEssencesResult, azeriteEmpoweredItemResult, keystoneItemResult);
 
         do
         {

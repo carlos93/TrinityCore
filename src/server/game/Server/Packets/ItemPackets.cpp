@@ -402,3 +402,12 @@ void WorldPackets::Item::SetBankAutosortDisabled::Read()
 {
     Disable = _worldPacket.ReadBit();
 }
+
+WorldPacket const* WorldPackets::Item::ItemChanged::Write()
+{
+    _worldPacket << PlayerGuid;
+    _worldPacket << ItemInstanceBefore;
+    _worldPacket << ItemInstanceAfter;
+
+    return &_worldPacket;
+}

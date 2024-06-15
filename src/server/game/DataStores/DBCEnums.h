@@ -202,6 +202,8 @@ enum ArtifactPowerFlag : uint8
 #define MAX_AZERITE_ESSENCE_SLOT 4
 #define MAX_AZERITE_ESSENCE_RANK 4
 
+#define MAX_KEYSTONE_AFFIX 4
+
 enum class AzeriteItemMilestoneType : int32
 {
     MajorEssence    = 0,

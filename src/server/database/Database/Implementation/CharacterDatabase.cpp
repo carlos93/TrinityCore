@@ -226,6 +226,11 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_ITEM_INSTANCE_MODIFIERS, "INSERT INTO item_instance_modifiers (itemGuid, fixedScalingLevel, artifactKnowledgeLevel) VALUES (?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_ITEM_INSTANCE_MODIFIERS, "DELETE FROM item_instance_modifiers WHERE itemGuid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_ITEM_INSTANCE_MODIFIERS_BY_OWNER, "DELETE im FROM item_instance_modifiers im LEFT JOIN item_instance ii ON im.itemGuid = ii.guid WHERE ii.owner_guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_ITEM_INSTANCE_KEYSTONE, "INSERT INTO item_instance_keystone (itemGuid, level, mapId, affix1, affix2, affix3, affix4) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_ITEM_INSTANCE_KEYSTONE, "SELECT ik.itemGuid, ik.level, ik.mapId,ik. affix1, ik.affix2, ik.affix3, ik.affix4 from item_instance_keystone ik LEFT JOIN character_inventory ci ON ik.itemGuid = ci.item WHERE ci.guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_MAILITEMS_KEYSTONE, "SELECT ik.itemGuid, ik.level, ik.mapId, ik.affix1,  ik.affix2,  ik.affix3, ik.affix4 FROM item_instance_keystone ik INNER JOIN mail_items mi ON ik.itemGuid = mi.item_guid INNER JOIN mail m ON mi.mail_id = m.id WHERE m.receiver = ?", CONNECTION_BOTH);
+    PrepareStatement(CHAR_DEL_ITEM_INSTANCE_KEYSTONE, "DELETE FROM item_instance_keystone WHERE itemGuid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_DEL_ITEM_INSTANCE_KEYSTONE_BY_OWNER, "DELETE im FROM item_instance_keystone im LEFT JOIN item_instance ii ON im.itemGuid = ii.guid WHERE ii.owner_guid = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_SEL_ITEM_INSTANCE_AZERITE, "SELECT iz.itemGuid, iz.xp, iz.level, iz.knowledgeLevel, "
         "iz.selectedAzeriteEssences1specId, iz.selectedAzeriteEssences1azeriteEssenceId1, iz.selectedAzeriteEssences1azeriteEssenceId2, iz.selectedAzeriteEssences1azeriteEssenceId3, iz.selectedAzeriteEssences1azeriteEssenceId4, "
         "iz.selectedAzeriteEssences2specId, iz.selectedAzeriteEssences2azeriteEssenceId1, iz.selectedAzeriteEssences2azeriteEssenceId2, iz.selectedAzeriteEssences2azeriteEssenceId3, iz.selectedAzeriteEssences2azeriteEssenceId4, "

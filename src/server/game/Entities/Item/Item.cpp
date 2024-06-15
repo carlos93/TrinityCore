@@ -310,7 +310,7 @@ ItemModifier const SecondaryAppearanceModifierSlotBySpec[MAX_SPECIALIZATIONS] =
 void ItemAdditionalLoadInfo::Init(std::unordered_map<ObjectGuid::LowType, ItemAdditionalLoadInfo>* loadInfo,
     PreparedQueryResult artifactResult, PreparedQueryResult azeriteItemResult,
     PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult,
-    PreparedQueryResult azeriteEmpoweredItemResult)
+    PreparedQueryResult azeriteEmpoweredItemResult, PreparedQueryResult keystoneItemResult)
 {
     //                 0     1                       2                 3                   4                 5
     // SELECT a.itemGuid, a.xp, a.artifactAppearanceId, a.artifactTierId, ap.artifactPowerId, ap.purchasedRank FROM item_instance_artifact_powers ap LEFT JOIN item_instance_artifact a ON ap.itemGuid = a.itemGuid ...
@@ -438,6 +438,32 @@ void ItemAdditionalLoadInfo::Init(std::unordered_map<ObjectGuid::LowType, ItemAd
                     info.AzeriteEmpoweredItem->SelectedAzeritePowers[i] = fields[1 + i].GetInt32();
 
         } while (azeriteEmpoweredItemResult->NextRow());
+    }
+
+    //                  0         1         2          3          4          5          6
+    // SELECT ik.itemGuid, ik.level, ik.mapId, ik.affix1, ik.affix2, ik.affix3, ik.affix4 FROM ite_instance_keystone ik INNER JOIN ...
+    if (keystoneItemResult)
+    {
+        do
+        {
+            Field* fields = keystoneItemResult->Fetch();
+            ItemAdditionalLoadInfo& info = (*loadInfo)[fields[0].GetUInt64()];
+            if (!info.KeystoneItem)
+                info.KeystoneItem.emplace();
+
+            info.KeystoneItem->Level = fields[1].GetUInt32();
+
+            if (MapChallengeModeEntry const* mapChallenge = sMapChallengeModeStore.LookupEntry(fields[2].GetUInt32()))
+                info.KeystoneItem->MapId = mapChallenge;
+
+            for (uint8 i = 0; i < MAX_KEYSTONE_AFFIX; i++)
+            {
+                KeystoneAffixEntry const* affix = sKeystoneAffixStore.LookupEntry(fields[3 + i].GetUInt32());
+                if (affix)
+                    info.KeystoneItem->Affixes[i] = affix;
+            }
+
+        } while (keystoneItemResult->NextRow());
     }
 }
 
@@ -751,6 +777,23 @@ void Item::SaveToDB(CharacterDatabaseTransaction trans)
                 }
             }
 
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_KEYSTONE);
+            stmt->setUInt64(0, GetGUID().GetCounter());
+            trans->Append(stmt);
+
+            if (GetTemplate()->GetClass() == ITEM_CLASS_REAGENT && GetTemplate()->GetSubClass() == ITEM_SUBCLASS_KEYSTONE)
+            {
+                stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_ITEM_INSTANCE_KEYSTONE);
+                stmt->setUInt64(0, GetGUID().GetCounter());
+                stmt->setUInt32(1, GetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_LEVEL));
+                stmt->setUInt32(2, GetModifier(ITEM_MODIFIER_CHALLENGE_MAP_CHALLENGE_MODE_ID));
+                stmt->setUInt32(3, GetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_1));
+                stmt->setUInt32(4, GetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_2));
+                stmt->setUInt32(5, GetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_3));
+                stmt->setUInt32(6, GetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_4));
+                trans->Append(stmt);
+            }
+
             static ItemModifier const modifiersTable[] =
             {
                 ITEM_MODIFIER_TIMEWALKER_LEVEL,
@@ -791,6 +834,10 @@ void Item::SaveToDB(CharacterDatabaseTransaction trans)
             trans->Append(stmt);
 
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_ARTIFACT_POWERS);
+            stmt->setUInt64(0, GetGUID().GetCounter());
+            trans->Append(stmt);
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_KEYSTONE);
             stmt->setUInt64(0, GetGUID().GetCounter());
             trans->Append(stmt);
 
@@ -1067,6 +1114,16 @@ void Item::LoadArtifactData(Player const* owner, uint64 xp, uint32 artifactAppea
     CheckArtifactRelicSlotUnlock(owner);
 }
 
+void Item::LoadKeystoneData(KeystoneItemData KeystoneItem)
+{
+    SetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_LEVEL, KeystoneItem.Level);
+    SetModifier(ITEM_MODIFIER_CHALLENGE_MAP_CHALLENGE_MODE_ID, KeystoneItem.MapId->ID);
+
+    for (uint8 i = 0; i < MAX_KEYSTONE_AFFIX; i++)
+        if (KeystoneItem.Affixes[i])
+            SetModifier(static_cast<ItemModifier>(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_1 + i), KeystoneItem.Affixes[i]->ID);
+}
+
 void Item::CheckArtifactRelicSlotUnlock(Player const* owner)
 {
     if (!owner)
@@ -1102,6 +1159,10 @@ void Item::DeleteFromDB(CharacterDatabaseTransaction trans, ObjectGuid::LowType 
     CharacterDatabase.ExecuteOrAppend(trans, stmt);
 
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_ARTIFACT_POWERS);
+    stmt->setUInt64(0, itemGuid);
+    CharacterDatabase.ExecuteOrAppend(trans, stmt);
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_ITEM_INSTANCE_KEYSTONE);
     stmt->setUInt64(0, itemGuid);
     CharacterDatabase.ExecuteOrAppend(trans, stmt);
 

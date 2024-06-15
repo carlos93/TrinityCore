@@ -48,6 +48,7 @@
 #include "Guild.h"
 #include "InstanceScript.h"
 #include "Item.h"
+#include "ItemPackets.h"
 #include "Language.h"
 #include "Log.h"
 #include "Loot.h"
@@ -346,7 +347,7 @@ NonDefaultConstructible<SpellEffectHandlerFn> SpellEffectHandlers[TOTAL_SPELL_EF
     &Spell::EffectLearnTransmogSet,                         //255 SPELL_EFFECT_LEARN_TRANSMOG_SET
     &Spell::EffectUnused,                                   //256 SPELL_EFFECT_256
     &Spell::EffectUnused,                                   //257 SPELL_EFFECT_257
-    &Spell::EffectNULL,                                     //258 SPELL_EFFECT_MODIFY_KEYSTONE
+    &Spell::EffectModifyKeystone,                           //258 SPELL_EFFECT_MODIFY_KEYSTONE
     &Spell::EffectRespecAzeriteEmpoweredItem,               //259 SPELL_EFFECT_RESPEC_AZERITE_EMPOWERED_ITEM
     &Spell::EffectNULL,                                     //260 SPELL_EFFECT_SUMMON_STABLED_PET
     &Spell::EffectNULL,                                     //261 SPELL_EFFECT_SCRAP_ITEM
@@ -6046,4 +6047,54 @@ void Spell::EffectTeleportGraveyard()
         return;
 
     target->RepopAtGraveyard();
+}
+
+void Spell::EffectModifyKeystone()
+{
+    if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
+        return;
+
+    if (!itemTarget || !itemTarget->GetTemplate() || itemTarget->GetTemplate()->GetSubClass() != ITEM_SUBCLASS_KEYSTONE)
+        return;
+
+    Player* target = m_caster->ToPlayer();
+    if (!target)
+        return;
+
+    WorldPackets::Item::ItemInstance itemInstanceBefore;
+    itemInstanceBefore.Initialize(itemTarget);
+
+    if (effectInfo->BasePoints != 0)
+        itemTarget->SetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_LEVEL, effectInfo->BasePoints);
+
+    if (effectInfo->MiscValue != 0)
+        itemTarget->SetModifier(ITEM_MODIFIER_CHALLENGE_MAP_CHALLENGE_MODE_ID, effectInfo->MiscValue);
+
+    if (effectInfo->MiscValueB != 0)
+    {
+        const uint8 maxKeystoneAffixes = 4;
+        for (uint8 i = 0; i < maxKeystoneAffixes; i++)
+        {
+            ItemModifier itemModifierId = static_cast<ItemModifier>(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_1 + i);
+            if (itemTarget->GetModifier(itemModifierId) == 0)
+            {
+                itemTarget->SetModifier(itemModifierId, effectInfo->MiscValueB);
+                break;
+            }
+        }
+    }
+
+    WorldPackets::Item::ItemInstance itemInstanceAfter;
+    itemInstanceAfter.Initialize(itemTarget);
+
+    if (target->GetSession())
+    {
+        WorldPackets::Item::ItemChanged itemChanged;
+        itemChanged.PlayerGuid = target->GetGUID();
+        itemChanged.ItemInstanceBefore = itemInstanceBefore;
+        itemChanged.ItemInstanceAfter = itemInstanceAfter;
+        target->GetSession()->SendPacket(itemChanged.Write());
+    }
+
+    itemTarget->SetState(ITEM_CHANGED, target);
 }

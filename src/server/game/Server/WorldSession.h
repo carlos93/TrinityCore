@@ -457,6 +457,7 @@ namespace WorldPackets
         class SetBackpackAutosortDisabled;
         class SetBackpackSellJunkDisabled;
         class SetBankAutosortDisabled;
+        class ItemChanged;
     }
 
     namespace LFG

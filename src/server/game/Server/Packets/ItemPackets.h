@@ -591,6 +591,18 @@ namespace WorldPackets
 
             bool Disable = false;
         };
+        
+        class ItemChanged final : public ServerPacket
+        {
+        public:
+            ItemChanged() : ServerPacket(SMSG_ITEM_CHANGED) { }
+
+            WorldPacket const* Write() override;
+
+            ObjectGuid PlayerGuid;
+            ItemInstance ItemInstanceBefore;
+            ItemInstance ItemInstanceAfter;
+        };
     }
 }
 

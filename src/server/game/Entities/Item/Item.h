@@ -147,14 +147,22 @@ struct AzeriteEmpoweredItemData
     std::array<int32, MAX_AZERITE_EMPOWERED_TIER> SelectedAzeritePowers;
 };
 
+struct KeystoneItemData
+{
+    uint32 Level;
+    MapChallengeModeEntry const* MapId;
+    std::array<KeystoneAffixEntry const*, MAX_KEYSTONE_AFFIX> Affixes = { };
+};
+
 struct ItemAdditionalLoadInfo
 {
     static void Init(std::unordered_map<ObjectGuid::LowType, ItemAdditionalLoadInfo>* loadInfo, PreparedQueryResult artifactResult, PreparedQueryResult azeriteItemResult,
-        PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult);
+        PreparedQueryResult azeriteItemMilestonePowersResult, PreparedQueryResult azeriteItemUnlockedEssencesResult, PreparedQueryResult azeriteEmpoweredItemResult, PreparedQueryResult keystoneItemResult);
 
     Optional<ArtifactData> Artifact;
     Optional<AzeriteItemData> AzeriteItem;
     Optional<AzeriteEmpoweredItemData> AzeriteEmpoweredItem;
+    Optional<KeystoneItemData> KeystoneItem;
 };
 
 struct ItemDynamicFieldGems
@@ -223,6 +231,7 @@ class TC_GAME_API Item : public Object
         virtual void SaveToDB(CharacterDatabaseTransaction trans);
         virtual bool LoadFromDB(ObjectGuid::LowType guid, ObjectGuid ownerGuid, Field* fields, uint32 entry);
         void LoadArtifactData(Player const* owner, uint64 xp, uint32 artifactAppearanceId, uint32 artifactTier, std::vector<ArtifactPowerData>& powers);  // must be called after LoadFromDB to have gems (relics) initialized
+        void LoadKeystoneData(KeystoneItemData KeystoneItem);
         void CheckArtifactRelicSlotUnlock(Player const* owner);
 
         void AddBonuses(uint32 bonusListID);
