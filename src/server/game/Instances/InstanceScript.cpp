@@ -406,7 +406,7 @@ bool InstanceScript::SetBossState(uint32 id, EncounterState state)
                 {
                     uint32 resInterval = GetCombatResurrectionChargeInterval();
                     InitializeCombatResurrections(1, resInterval);
-                    SendEncounterStart(1, 9, resInterval, resInterval);
+                    SendEncounterStart(1, 5, resInterval, resInterval);
 
                     instance->DoOnPlayers([](Player* player)
                     {
@@ -983,11 +983,7 @@ void InstanceScript::ResetCombatResurrections()
 
 uint32 InstanceScript::GetCombatResurrectionChargeInterval() const
 {
-    uint32 interval = 0;
-    if (uint32 playerCount = instance->GetPlayers().getSize())
-        interval = 90 * MINUTE * IN_MILLISECONDS / playerCount;
-
-    return interval;
+    return 10 * MINUTE * IN_MILLISECONDS;
 }
 
 PersistentInstanceScriptValueBase::PersistentInstanceScriptValueBase(InstanceScript& instance, char const* name, std::variant<int64, double> value)
