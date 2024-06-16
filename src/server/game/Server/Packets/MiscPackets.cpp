@@ -250,6 +250,34 @@ WorldPacket const* WorldPackets::Misc::RaidDifficultySet::Write()
     return &_worldPacket;
 }
 
+WorldPacket const* WorldPackets::Misc::ChangePlayerDifficultyResult::Write()
+{
+    _worldPacket.WriteBits(static_cast<uint8>(Result), 4);
+
+    switch (Result)
+    {
+    case DIFFICULTY_CHANGE_RESULT_COOLDOWN:
+    case DIFFICULTY_CHANGE_RESULT_LOADING_SCREEN_ENABLE:
+        _worldPacket.WriteBit(InCombat);
+        _worldPacket << Cooldown;
+        break;
+    case DIFFICULTY_CHANGE_RESULT_MAP_DIFFICULTY_CONDITION_NOT_SATISFIED:
+        _worldPacket << MapDifficultyId;
+        break;
+    case DIFFICULTY_CHANGE_RESULT_PLAYER_ALREADY_LOCKED_TO_DIFFERENT_INSTANCE:
+        _worldPacket << PlayerGUID;
+        break;
+    case DIFFICULTY_CHANGE_RESULT_SUCCESS:
+        _worldPacket << MapId;
+        _worldPacket << DifficultyId;
+        break;
+    default:
+        break;
+    }
+
+    return &_worldPacket;
+}
+
 WorldPacket const* WorldPackets::Misc::CorpseReclaimDelay::Write()
 {
     _worldPacket << Remaining;
@@ -373,6 +401,37 @@ WorldPacket const* WorldPackets::Misc::PauseMirrorTimer::Write()
 WorldPacket const* WorldPackets::Misc::StopMirrorTimer::Write()
 {
     _worldPacket << int32(Timer);
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Misc::StartElapsedTimer::Write()
+{
+    _worldPacket << Timer.TimerId;
+    _worldPacket << Timer.CurrentDuration;
+    _worldPacket << Timer.Unk;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Misc::StartElapsedTimers::Write()
+{
+    _worldPacket << Timers.size();
+
+    for (ElapsedTimer const Timer : Timers)
+    {
+        _worldPacket << Timer.TimerId;
+        _worldPacket << Timer.CurrentDuration;
+        _worldPacket << Timer.Unk;
+    }
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::Misc::StopElapsedTimer::Write()
+{
+    _worldPacket << Timer;
+    _worldPacket.WriteBit(KeepTimer);
 
     return &_worldPacket;
 }

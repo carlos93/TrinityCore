@@ -310,6 +310,24 @@ namespace WorldPackets
             uint8 Legacy = 0;
         };
 
+        class ChangePlayerDifficultyResult final : public ServerPacket
+        {
+        public:
+            ChangePlayerDifficultyResult() : ServerPacket(SMSG_CHANGE_PLAYER_DIFFICULTY_RESULT) { }
+
+            WorldPacket const* Write() override;
+
+            int64 Cooldown;
+            int32 MapDifficultyId;
+            int32 MapId;
+            int32 DifficultyId;
+            DifficultyChangeResult Result;
+
+            ObjectGuid PlayerGUID;
+
+            bool InCombat;
+        };
+
         class CorpseReclaimDelay : public ServerPacket
         {
         public:
@@ -483,6 +501,44 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             int32 Timer = 0;
+        };
+
+        struct ElapsedTimer
+        {
+            int32 TimerId;
+            int32 CurrentDuration;
+            int32 Unk;            
+        };
+
+        class StartElapsedTimer final : public ServerPacket
+        {
+        public:
+            StartElapsedTimer() : ServerPacket(SMSG_START_ELAPSED_TIMER, 4+4+4) { }
+
+            WorldPacket const* Write() override;
+
+            ElapsedTimer Timer;
+        };
+
+        class StartElapsedTimers final : public ServerPacket
+        {
+        public:
+            StartElapsedTimers() : ServerPacket(SMSG_START_ELAPSED_TIMERS) { }
+
+            WorldPacket const* Write() override;
+
+            std::vector<ElapsedTimer> Timers;
+        };
+
+        class StopElapsedTimer final : public ServerPacket
+        {
+        public:
+            StopElapsedTimer() : ServerPacket(SMSG_STOP_ELAPSED_TIMER, 8) { }
+
+            WorldPacket const* Write() override;
+
+            int32 Timer = 0;
+            bool KeepTimer = false;
         };
 
         class ExplorationExperience final : public ServerPacket

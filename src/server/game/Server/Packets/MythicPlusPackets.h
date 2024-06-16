@@ -84,7 +84,7 @@ namespace WorldPackets
         class TC_GAME_API MythicPlusAllMapStats final : public ServerPacket
         {
         public:
-            MythicPlusAllMapStats() : ServerPacket(SMSG_MYTHIC_PLUS_ALL_MAP_STATS, 4+4+4) { }
+            MythicPlusAllMapStats() : ServerPacket(SMSG_MYTHIC_PLUS_ALL_MAP_STATS) { }
 
             WorldPacket const* Write() override;
 
@@ -106,6 +106,55 @@ namespace WorldPackets
 
             ObjectGuid BnetAccountGUID;
             ObjectGuid GUID;
+        };
+
+        class StartChallengeMode final : public ClientPacket
+        {
+        public:
+            StartChallengeMode(WorldPacket&& packet) : ClientPacket(CMSG_START_CHALLENGE_MODE, std::move(packet)) { }
+
+            void Read() override;
+
+            uint8 Bag;
+            int32 Slot;
+            ObjectGuid GameobjectGuid;
+        };
+
+        class TC_GAME_API ChallengeModeStart final : public ServerPacket
+        {
+        public:
+            ChallengeModeStart() : ServerPacket(SMSG_CHALLENGE_MODE_START) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 MapId;
+            uint32 ChallengeId;
+            int32 ChallengeLevel;
+            uint32 DeathCount;
+
+            bool WasActiveKeystoneCharged;
+            
+            std::array<uint32, 4> Affixes;
+        };
+
+        class TC_GAME_API ChallengeModeReset final : public ServerPacket
+        {
+        public:
+            ChallengeModeReset() : ServerPacket(SMSG_CHALLENGE_MODE_RESET, 4) { }
+
+            WorldPacket const* Write() override;
+
+            uint32 MapId;
+        };
+
+        class TC_GAME_API ChallengeModeUpdateDeathCount final : public ServerPacket
+        {
+        public:
+            ChallengeModeUpdateDeathCount() : ServerPacket(SMSG_CHALLENGE_MODE_UPDATE_DEATH_COUNT, 4) { }
+
+            WorldPacket const* Write() override;
+
+            int32 NewDeathCount;
         };
     }
 }

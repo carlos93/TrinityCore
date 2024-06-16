@@ -504,6 +504,7 @@ namespace WorldPackets
         class TutorialSetFlag;
         class SetDungeonDifficulty;
         class SetRaidDifficulty;
+        class ChangePlayerDifficultyResult;
         class PortGraveyard;
         class ReclaimCorpse;
         class RepopRequest;
@@ -855,6 +856,10 @@ namespace WorldPackets
         class MythicPlusNewWeekRecord;
         class MythicPlusAllMapStats;
         class MythicPlusRequestMapStats;
+        class StartChallengeMode;
+        class ChallengeModeStart;
+        class ChallengeModeReset;
+        class ChallengeModeUpdateDeathCount;
     }
 
     class Null;
@@ -929,6 +934,23 @@ enum TutorialsFlag : uint8
     TUTORIALS_FLAG_NONE = 0x00,
     TUTORIALS_FLAG_CHANGED = 0x01,
     TUTORIALS_FLAG_LOADED_FROM_DB = 0x02
+};
+
+enum DifficultyChangeResult
+{
+    DIFFICULTY_CHANGE_RESULT_COOLDOWN = 0,
+    DIFFICULTY_CHANGE_RESULT_EVENT_IN_PROGRESS = 1,
+    DIFFICULTY_CHANGE_RESULT_ENCOUNTER_IN_PROGRESS = 2,
+    DIFFICULTY_CHANGE_RESULT_PLAYER_COMBAT = 3,
+    DIFFICULTY_CHANGE_RESULT_PLAYER_BUSY = 4,
+    DIFFICULTY_CHANGE_RESULT_PLAYER_ON_VEHICLE = 5,
+    DIFFICULTY_CHANGE_RESULT_LOADING_SCREEN_ENABLE = 6,
+    DIFFICULTY_CHANGE_RESULT_DIFFICULTY_CHANGE_ALREADY_IN_PROGRESS = 7,
+    DIFFICULTY_CHANGE_RESULT_MAP_DIFFICULTY_CONDITION_NOT_SATISFIED = 8,
+    DIFFICULTY_CHANGE_RESULT_PLAYER_ALREADY_LOCKED_TO_DIFFERENT_INSTANCE = 9,
+    DIFFICULTY_CHANGE_RESULT_HEROIC_INSATNCE_ALREADY_RUNNING_OTHER_PARTY = 10,
+    DIFFICULTY_CHANGE_RESULT_DISABLED_IN_LFG = 11,
+    DIFFICULTY_CHANGE_RESULT_SUCCESS = 12
 };
 
 //class to deal with packet processing
@@ -1494,6 +1516,7 @@ class TC_GAME_API WorldSession
         void HandleRequestMythicPlusSeasonData(WorldPackets::MythicPlus::RequestMythicPlusSeasonData& packet);
         void HandleRequestMythicPlusAffixes(WorldPackets::MythicPlus::RequestMythicPlusAffixes& packet);
         void HandleMythicPlusRequestMapStats(WorldPackets::MythicPlus::MythicPlusRequestMapStats& packet);
+        void HandleStartChallengeMode(WorldPackets::MythicPlus::StartChallengeMode& packet);
 
         // Black Market
         void HandleBlackMarketOpen(WorldPackets::BlackMarket::BlackMarketOpen& blackMarketOpen);

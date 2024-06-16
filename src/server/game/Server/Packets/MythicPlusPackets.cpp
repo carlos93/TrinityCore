@@ -68,3 +68,40 @@ void WorldPackets::MythicPlus::MythicPlusRequestMapStats::Read()
     _worldPacket >> BnetAccountGUID;
     _worldPacket >> GUID;
 }
+
+void WorldPackets::MythicPlus::StartChallengeMode::Read()
+{
+    _worldPacket >> Bag;
+    _worldPacket >> Slot;
+    _worldPacket >> GameobjectGuid;
+}
+
+WorldPacket const* WorldPackets::MythicPlus::ChallengeModeStart::Write()
+{
+    _worldPacket << MapId;
+    _worldPacket << ChallengeId;
+    _worldPacket << ChallengeLevel;
+
+    for (uint32 i = 0; i < Affixes.size(); i++)
+        _worldPacket << Affixes[i];
+
+    _worldPacket << DeathCount;
+    _worldPacket.WriteBit(WasActiveKeystoneCharged);
+    _worldPacket.FlushBits();
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::MythicPlus::ChallengeModeReset::Write()
+{
+    _worldPacket << MapId;
+
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::MythicPlus::ChallengeModeUpdateDeathCount::Write()
+{
+    _worldPacket << NewDeathCount;
+    
+    return &_worldPacket;
+}
