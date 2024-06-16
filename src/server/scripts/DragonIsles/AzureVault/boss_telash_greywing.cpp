@@ -136,6 +136,8 @@ struct boss_telash_greywing : public BossAI
     {
         _JustDied();
         Talk(SAY_DEATH);
+        
+        instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
 
         Creature* creature = me->FindNearestCreatureWithOptions(100.0f, { .CreatureId = NPC_COSMETIC_BARRIER_STALKER, .AuraSpellId = SPELL_BARRIER_COSMETIC_SMALL });
         if (creature)

@@ -147,6 +147,8 @@ struct boss_umbrelskul : public BossAI
     void JustDied(Unit* /*killer*/) override
     {
         _JustDied();
+        
+        instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, me);
 
         TempSummon* sindragosa = me->SummonCreature(NPC_SINDRAGOSA_2, me->GetRandomNearPosition(20.0f), TEMPSUMMON_MANUAL_DESPAWN);
         if (sindragosa)
