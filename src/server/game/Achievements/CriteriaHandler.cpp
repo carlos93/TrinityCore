@@ -3580,6 +3580,9 @@ bool CriteriaHandler::ModifierSatisfied(ModifierTreeEntry const* modifier, uint6
                 case 149: // Shadowlands Season 2 End
                     // timestamp = unknown
                     break;
+                case 260: // Dragonflight Mythic plus start
+                    eventTimestamp = time_t(1670914800); // December 13, 2022 8:00
+                    break;
                 case 349: // Dragonflight Season 3 Start (pre-season)
                     eventTimestamp = time_t(1699340400); // November 7, 2023 8:00
                     break;

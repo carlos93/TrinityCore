@@ -3610,9 +3610,43 @@ static int32(* const WorldStateExpressionFunctions[WSE_FUNCTION_MAX])(Map const*
     },
 
     // WSE_FUNCTION_TIME_EVENT_PASSED
-    [](Map const* /*map*/, uint32 /*arg1*/, uint32 /*arg2*/) -> int32
+    [](Map const* /*map*/, uint32 arg1, uint32 /*arg2*/) -> int32
     {
-        return 0;
+        time_t eventTimestamp = GameTime::GetGameTime();
+        switch (arg1)
+        {
+            case 111: // Battle for Azeroth Season 4 Start
+                eventTimestamp = time_t(1579618800); // January 21, 2020 8:00
+                break;
+            case 120: // Patch 9.0.1
+                eventTimestamp = time_t(1602601200); // October 13, 2020 8:00
+                break;
+            case 121: // Shadowlands Season 1 Start
+                eventTimestamp = time_t(1607439600); // December 8, 2020 8:00
+                break;
+            case 123: // Shadowlands Season 1 End
+                // timestamp = unknown
+                break;
+            case 149: // Shadowlands Season 2 End
+                // timestamp = unknown
+                break;
+            case 260: // Dragonflight Mythic plus start
+                eventTimestamp = time_t(1670914800); // December 13, 2022 8:00
+                break;
+            case 349: // Dragonflight Season 3 Start (pre-season)
+                eventTimestamp = time_t(1699340400); // November 7, 2023 8:00
+                break;
+            case 350: // Dragonflight Season 3 Start
+                eventTimestamp = time_t(1699945200); // November 14, 2023 8:00
+                break;
+            case 352: // Dragonflight Season 3 End
+                // eventTimestamp = time_t(); unknown
+                break;
+            default:
+                break;
+        }
+
+        return GameTime::GetGameTime() > eventTimestamp;
     },
 };
 
