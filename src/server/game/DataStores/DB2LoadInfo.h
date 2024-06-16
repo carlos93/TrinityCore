@@ -1681,6 +1681,21 @@ struct DifficultyLoadInfo
     static constexpr DB2LoadInfo Instance{ Fields, 14, &DifficultyMeta::Instance, HOTFIX_SEL_DIFFICULTY };
 };
 
+struct DisplaySeasonLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[6] =
+    {
+        { false, FT_STRING, "Name" },
+        { false, FT_INT, "ID" },
+        { true, FT_INT, "Season" },
+        { true, FT_INT, "ExpansionSeason" },
+        { true, FT_INT, "Expansion" },
+        { true, FT_INT, "Unk" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 6, &DisplaySeasonMeta::Instance, HOTFIX_SEL_DISPLAY_SEASON };
+};
+
 struct DungeonEncounterLoadInfo
 {
     static constexpr DB2FieldMeta Fields[10] =
@@ -3882,6 +3897,32 @@ struct MythicPlusSeasonLoadInfo
     };
 
     static constexpr DB2LoadInfo Instance{ Fields, 4, &MythicPlusSeasonMeta::Instance, HOTFIX_SEL_MYTHIC_PLUS_SEASON };
+};
+
+struct MythicPlusSeasonTrackedAffixLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[5] =
+    {
+        { false, FT_INT, "ID" },
+        { true, FT_INT, "KeystoneAffixID" },
+        { true, FT_INT, "Unk0" },
+        { true, FT_INT, "Unk1" },
+        { false, FT_INT, "DisplaySeasonID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 5, &MythicPlusSeasonTrackedAffixMeta::Instance, HOTFIX_SEL_MYTHIC_PLUS_SEASON_TRACKED_AFFIX };
+};
+
+struct MythicPlusSeasonTrackedMapLoadInfo
+{
+    static constexpr DB2FieldMeta Fields[3] =
+    {
+        { false, FT_INT, "ID" },
+        { true, FT_INT, "MapChallengeModeID" },
+        { false, FT_INT, "DisplaySeasonID" },
+    };
+
+    static constexpr DB2LoadInfo Instance{ Fields, 3, &MythicPlusSeasonTrackedMapMeta::Instance, HOTFIX_SEL_MYTHIC_PLUS_SEASON_TRACKED_MAP };
 };
 
 struct NameGenLoadInfo

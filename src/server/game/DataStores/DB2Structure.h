@@ -1485,6 +1485,16 @@ struct DifficultyEntry
     uint32 GroupSizeSpellPointsCurveID;
 };
 
+struct DisplaySeasonEntry
+{
+    LocalizedString Name;
+    uint32 ID;
+    int32 Season;
+    int32 ExpansionSeason;
+    int32 Expansion;
+    int32 Unk;
+};
+
 struct DungeonEncounterEntry
 {
     LocalizedString Name;
@@ -2928,6 +2938,22 @@ struct MythicPlusSeasonEntry
     int32 MilestoneSeason;
     int32 ExpansionLevel;
     int32 HeroicLFGDungeonMinGear;
+};
+
+struct MythicPlusSeasonTrackedAffixEntry
+{
+    uint32 ID;
+    int32 KeystoneAffixID;
+    int32 Unk0;
+    int32 Unk1;
+    uint32 DisplaySeasonID;
+};
+
+struct MythicPlusSeasonTrackedMapEntry
+{
+    uint32 ID;
+    int32 MapChallengeModeID;
+    uint32 DisplaySeasonID;
 };
 
 struct NameGenEntry

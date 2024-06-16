@@ -3989,7 +3989,7 @@ struct DisplaySeasonMeta
 {
     static constexpr DB2MetaField Fields[6] =
     {
-        { FT_STRING, 1, true },
+        { FT_STRING, 1, false },
         { FT_INT, 1, false },
         { FT_INT, 1, true },
         { FT_INT, 1, true },
@@ -8644,7 +8644,7 @@ struct MythicPlusSeasonTrackedAffixMeta
         { FT_INT, 1, true },
         { FT_INT, 1, true },
         { FT_INT, 1, true },
-        { FT_INT, 1, true },
+        { FT_INT, 1, false },
     };
 
     static constexpr DB2Meta Instance{ 4067473, 0, 5, 4, 0x885D0924, Fields, 4 };
@@ -8654,7 +8654,7 @@ struct MythicPlusSeasonTrackedMapMeta
 {
     static constexpr DB2MetaField Fields[2] =
     {
-        { FT_INT, 1, true },
+        { FT_INT, 1, false },
         { FT_INT, 1, true },
     };
 

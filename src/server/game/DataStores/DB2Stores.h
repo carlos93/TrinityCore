@@ -99,6 +99,7 @@ TC_GAME_API extern DB2Storage<CurrencyTypesEntry>                   sCurrencyTyp
 TC_GAME_API extern DB2Storage<CurveEntry>                           sCurveStore;
 TC_GAME_API extern DB2Storage<DestructibleModelDataEntry>           sDestructibleModelDataStore;
 TC_GAME_API extern DB2Storage<DifficultyEntry>                      sDifficultyStore;
+TC_GAME_API extern DB2Storage<DisplaySeasonEntry>                   sDisplaySeasonStore;
 TC_GAME_API extern DB2Storage<DungeonEncounterEntry>                sDungeonEncounterStore;
 TC_GAME_API extern DB2Storage<DurabilityCostsEntry>                 sDurabilityCostsStore;
 TC_GAME_API extern DB2Storage<DurabilityQualityEntry>               sDurabilityQualityStore;
@@ -193,6 +194,8 @@ TC_GAME_API extern DB2Storage<MountCapabilityEntry>                 sMountCapabi
 TC_GAME_API extern DB2Storage<MountEntry>                           sMountStore;
 TC_GAME_API extern DB2Storage<MovieEntry>                           sMovieStore;
 TC_GAME_API extern DB2Storage<MythicPlusSeasonEntry>                sMythicPlusSeasonStore;
+TC_GAME_API extern DB2Storage<MythicPlusSeasonTrackedAffixEntry>    sMythicPlusSeasonTrackedAffixStore;
+TC_GAME_API extern DB2Storage<MythicPlusSeasonTrackedMapEntry>      sMythicPlusSeasonTrackedMapStore;
 TC_GAME_API extern DB2Storage<OverrideSpellDataEntry>               sOverrideSpellDataStore;
 TC_GAME_API extern DB2Storage<ParagonReputationEntry>               sParagonReputationStore;
 TC_GAME_API extern DB2Storage<PhaseEntry>                           sPhaseStore;
