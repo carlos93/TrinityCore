@@ -16,8 +16,11 @@
  */
 
 #include "Scenario.h"
+#include "Group.h"
 #include "Log.h"
 #include "Map.h"
+#include "MiscPackets.h"
+#include "MythicPlusPackets.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
 #include "Player.h"
@@ -25,9 +28,9 @@
 #include "ScenarioPackets.h"
 #include "WorldSession.h"
 
-Scenario::Scenario(Map* map, ScenarioData const* scenarioData) : _map(map), _data(scenarioData),
+Scenario::Scenario(Map* map, ScenarioData const* scenarioData, Optional<KeystoneItemData> const keystoneItemData) : _map(map), _data(scenarioData),
     _guid(ObjectGuid::Create<HighGuid::Scenario>(map->GetId(), scenarioData->Entry->ID, map->GenerateLowGuid<HighGuid::Scenario>())),
-    _currentstep(nullptr)
+    _currentstep(nullptr), _keystoneItemData(keystoneItemData), _deathCount(0), _timerSent(false), _timerStartChallenge{}, _challengeStartTime(std::nullopt)
 {
     ASSERT(_data);
 
@@ -118,6 +121,33 @@ void Scenario::SetStep(ScenarioStepEntry const* step)
 void Scenario::OnPlayerEnter(Player* player)
 {
     _players.insert(player->GetGUID());
+
+    if (_keystoneItemData)
+    {
+        // If its the first player to enter the challenge, start timer
+        if (!_challengeStartTime.has_value())
+        {
+            _timerStartChallenge = WAIT_SECONDS_UNTIL_CHALLENGE_START * IN_MILLISECONDS;
+            _challengeStartTime = GameTime::GetSystemTime();
+        }
+
+        // If challenge is on preparation phase, send timer according with time left, otherwise send current elapsed timer
+        if (GetSecondsSinceChallengeStart() < WAIT_SECONDS_UNTIL_CHALLENGE_START)
+        {
+            WorldPackets::Misc::StartTimer timer;
+            timer.TotalTime = Seconds(WAIT_SECONDS_UNTIL_CHALLENGE_START);
+            timer.Type = CountdownTimerType::ChallengeMode;
+            timer.TimeLeft = Seconds(WAIT_SECONDS_UNTIL_CHALLENGE_START - GetSecondsSinceChallengeStart());
+            player->SendDirectMessage(timer.Write());
+        }
+        else
+        {
+            SendElapsedTimer(player, GetChallengeTimeElapsed());
+        }
+
+        SendChallengeModeStart(player);
+    }
+
     SendScenarioState(player);
 }
 
@@ -125,6 +155,39 @@ void Scenario::OnPlayerExit(Player* player)
 {
     _players.erase(player->GetGUID());
     SendBootPlayer(player);
+}
+
+void Scenario::OnPlayerDeath(Player* /*player*/)
+{
+    if (_deathCount != std::numeric_limits<uint32>::max())
+        _deathCount++;
+
+    DoForAllPlayers([&](Player const* receiver)
+    {
+        SendElapsedTimer(receiver, GetChallengeTimeElapsed());
+    });
+
+    WorldPackets::MythicPlus::ChallengeModeUpdateDeathCount deathCount;
+    deathCount.NewDeathCount = _deathCount;
+    SendPacket(deathCount.Write());
+}
+
+void Scenario::Update(uint32 diff)
+{
+    if (_timerStartChallenge.has_value())
+    {
+        if (_timerStartChallenge.value() < 0)
+        {
+            DoForAllPlayers([&](Player const* receiver)
+            {
+                SendElapsedTimer(receiver, GetChallengeTimeElapsed());
+            });
+
+            _timerStartChallenge.reset();
+        }
+        else
+            _timerStartChallenge = _timerStartChallenge.value() - diff;
+    }
 }
 
 bool Scenario::IsComplete() const
@@ -317,6 +380,23 @@ void Scenario::SendScenarioState(Player const* player) const
     player->SendDirectMessage(scenarioState.Write());
 }
 
+void Scenario::SendChallengeModeStart(Player const* player) const
+{
+    WorldPackets::MythicPlus::ChallengeModeStart start;
+    for (uint8 i = 0; i < MAX_KEYSTONE_AFFIX; i++)
+    {
+        KeystoneAffixEntry const* affixEntry = _keystoneItemData->Affixes[i];
+        start.Affixes[i] = affixEntry ? affixEntry->ID : 0;
+    }
+
+    start.MapId = _keystoneItemData->ChallengeMapId->MapID;
+    start.ChallengeId = _keystoneItemData->ChallengeMapId->ID;
+    start.ChallengeLevel = _keystoneItemData->Level;
+    start.DeathCount = _deathCount;
+    start.WasActiveKeystoneCharged = true;
+    player->SendDirectMessage(start.Write());
+}
+
 std::vector<WorldPackets::Scenario::BonusObjectiveData> Scenario::GetBonusObjectivesData() const
 {
     std::vector<WorldPackets::Scenario::BonusObjectiveData> bonusObjectivesData;
@@ -365,4 +445,15 @@ void Scenario::SendBootPlayer(Player const* player) const
     scenarioBoot.ScenarioGUID = _guid;
     scenarioBoot.ScenarioID = _data->Entry->ID;
     player->SendDirectMessage(scenarioBoot.Write());
+}
+
+void Scenario::SendElapsedTimer(Player const* player, uint32 timeElapsed) const
+{
+    WorldPackets::Misc::StartElapsedTimer startElapsedTimer;
+    WorldPackets::Misc::ElapsedTimer elapsedTimer;
+    elapsedTimer.TimerId = timeElapsed;
+    elapsedTimer.CurrentDuration = 0;
+    elapsedTimer.Unk = 1;
+    startElapsedTimer.Timer = elapsedTimer;
+    player->SendDirectMessage(startElapsedTimer.Write());
 }

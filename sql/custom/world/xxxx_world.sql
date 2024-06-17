@@ -25,6 +25,13 @@ update `creature_template` set `AIName` = 'PassiveAI' where `entry` = 171322;
 update `creature_template_addon` set `Auras` = '394104' where `entry` = 186738;
 
 
+SET @OGUID = 9805081;
+DELETE FROM `gameobject` WHERE `guid` BETWEEN @OGUID+0 AND @OGUID+0;
+INSERT INTO `gameobject` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnDifficulties`, `PhaseId`, `PhaseGroup`, `position_x`, `position_y`, `position_z`, `orientation`, `rotation0`, `rotation1`, `rotation2`, `rotation3`, `spawntimesecs`, `animprogress`, `state`, `VerifiedBuild`) VALUES
+(@OGUID+0, 282393, 2515, 13954, 13954, '8', '0', 0, -5064.3681640625, 1038.3819580078125, 594.4517822265625, 5.502217292785644531, 0, 0, -0.38063621520996093, 0.924724876880645751, 7200, 255, 1, 54988); -- 282393 (Area: 13954 - Difficulty: 23) CreateObject2
+
+UPDATE gameobject SET spawnDifficulties = '23' WHERE guid in (9000060, 9000172);
+
 DELETE FROM `scenarios` WHERE (`map`=2515 AND `difficulty` IN (1,2,8,23));
 INSERT INTO scenarios (`map`, difficulty, scenario_A, scenario_H) values
 (2515, 1, 2089, 2089),

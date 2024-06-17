@@ -25,7 +25,7 @@ class InstanceMap;
 class TC_GAME_API InstanceScenario : public Scenario
 {
     public:
-        InstanceScenario(InstanceMap* map, ScenarioData const* scenarioData);
+        InstanceScenario(InstanceMap* map, ScenarioData const* scenarioData, Optional<KeystoneItemData> keystoneItemData);
 
         void LoadInstanceData();
 

@@ -73,6 +73,7 @@
 #include "GuildMgr.h"
 #include "InstanceLockMgr.h"
 #include "InstancePackets.h"
+#include "InstanceScenario.h"
 #include "InstanceScript.h"
 #include "ItemPackets.h"
 #include "Language.h"
@@ -1200,6 +1201,9 @@ void Player::setDeathState(DeathState s)
 
         // reset all death criterias
         FailCriteria(CriteriaFailEvent::Death, 0);
+
+        if (InstanceScenario* scenario = GetMap()->ToInstanceMap()->GetInstanceScenario())
+            scenario->OnPlayerDeath(this);
     }
 
     Unit::setDeathState(s);

@@ -107,7 +107,7 @@ void WorldSession::HandleStartChallengeMode(WorldPackets::MythicPlus::StartChall
     SendPacket(changeDiffResult.Write());
 
     player->SetDungeonDifficultyID(DIFFICULTY_MYTHIC_KEYSTONE);
-    Map* map = sMapMgr->CreateMap(mapChallengeModeEntry->MapID, GetPlayer());
+    Map* map = sMapMgr->CreateMap(mapChallengeModeEntry->MapID, GetPlayer(), keystoneItemData);
 
     bool result = false;
     WorldSafeLocsEntry const* instanceEntrance = sObjectMgr->GetWorldSafeLoc(mapChallengeModeEntry->MapID);
@@ -125,7 +125,7 @@ void WorldSession::HandleStartChallengeMode(WorldPackets::MythicPlus::StartChall
 
     if (!result)
         return;
-
+    
     WorldPackets::MythicPlus::ChallengeModeReset reset;
     reset.MapId = mapChallengeModeEntry->MapID;
     SendPacket(reset.Write());

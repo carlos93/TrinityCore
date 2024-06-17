@@ -18,7 +18,10 @@
 #ifndef Scenario_h__
 #define Scenario_h__
 
+#include "Item.h"
+#include "GameTime.h"
 #include "CriteriaHandler.h"
+#include <optional>
 #include <map>
 #include <unordered_set>
 
@@ -49,10 +52,13 @@ enum ScenarioStepState
     SCENARIO_STEP_DONE          = 3
 };
 
+#define SECONDS_LOST_PER_DEATH 5
+#define WAIT_SECONDS_UNTIL_CHALLENGE_START 10
+
 class TC_GAME_API Scenario : public CriteriaHandler
 {
     public:
-        Scenario(Map* map, ScenarioData const* scenarioData);
+        Scenario(Map* map, ScenarioData const* scenarioData, Optional<KeystoneItemData> const keystoneItemData);
         ~Scenario();
 
         void Reset() override;
@@ -63,7 +69,8 @@ class TC_GAME_API Scenario : public CriteriaHandler
 
         virtual void OnPlayerEnter(Player* player);
         virtual void OnPlayerExit(Player* player);
-        virtual void Update(uint32 /*diff*/) { }
+        virtual void OnPlayerDeath(Player* /*player*/);
+        virtual void Update(uint32 diff);
 
         bool IsComplete() const;
         bool IsCompletedStep(ScenarioStepEntry const* step);
@@ -76,6 +83,8 @@ class TC_GAME_API Scenario : public CriteriaHandler
 
         void SendScenarioState(Player const* player) const;
         void SendBootPlayer(Player const* player) const;
+        void SendChallengeModeStart(Player const* player) const;
+        void SendElapsedTimer(Player const* player, uint32 timeElapsed) const;
 
     protected:
         Map const* _map;
@@ -102,10 +111,20 @@ class TC_GAME_API Scenario : public CriteriaHandler
         CriteriaList const& GetCriteriaByType(CriteriaType type, uint32 asset) const override;
         ScenarioData const* _data;
 
+        Optional<KeystoneItemData> GetKeystoneItemData() const { return _keystoneItemData; }
+
+        uint32 GetChallengeTimeElapsed() const { return GetSecondsSinceChallengeStart() + (_deathCount * SECONDS_LOST_PER_DEATH) - WAIT_SECONDS_UNTIL_CHALLENGE_START; }
+        uint32 GetSecondsSinceChallengeStart() const { return uint32(std::max(0LL, std::chrono::duration_cast<Seconds>(GameTime::GetSystemTime() - _challengeStartTime.value()).count())); }
+
     private:
         ObjectGuid const _guid;
         ScenarioStepEntry const* _currentstep;
         std::map<ScenarioStepEntry const*, ScenarioStepState> _stepStates;
+        Optional<KeystoneItemData> _keystoneItemData;
+        Optional<int32> _timerStartChallenge;
+        uint32 _deathCount;
+        Optional<SystemTimePoint> _challengeStartTime;
+        bool _timerSent;
 };
 
 #endif // Scenario_h__

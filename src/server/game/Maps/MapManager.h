@@ -22,6 +22,7 @@
 #include "IteratorPair.h"
 #include "MapUpdater.h"
 #include "Position.h"
+#include "Item.h"
 #include "SharedDefines.h"
 #include "UniqueTrackablePtr.h"
 #include <boost/dynamic_bitset_fwd.hpp>
@@ -51,7 +52,7 @@ class TC_GAME_API MapManager
 
         static MapManager* instance();
 
-        Map* CreateMap(uint32 mapId, Player* player);
+        Map* CreateMap(uint32 mapId, Player* player, Optional<KeystoneItemData> keystoneItemData = {});
         Map* FindMap(uint32 mapId, uint32 instanceId) const;
         uint32 FindInstanceIdForPlayer(uint32 mapId, Player const* player) const;
 
@@ -139,7 +140,7 @@ class TC_GAME_API MapManager
         Map* FindMap_i(uint32 mapId, uint32 instanceId) const;
 
         Map* CreateWorldMap(uint32 mapId, uint32 instanceId);
-        InstanceMap* CreateInstance(uint32 mapId, uint32 instanceId, InstanceLock* instanceLock, Difficulty difficulty, TeamId team, Group* group);
+        InstanceMap* CreateInstance(uint32 mapId, uint32 instanceId, InstanceLock* instanceLock, Difficulty difficulty, TeamId team, Group* group, Optional<KeystoneItemData> keystoneItemData);
         BattlegroundMap* CreateBattleground(uint32 mapId, uint32 instanceId, Battleground* bg);
         GarrisonMap* CreateGarrison(uint32 mapId, uint32 instanceId, Player* owner);
 

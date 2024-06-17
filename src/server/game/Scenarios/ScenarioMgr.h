@@ -21,6 +21,7 @@
 #include "Common.h"
 #include "Hash.h"
 #include "SharedDefines.h"
+#include "Item.h"
 #include <map>
 #include <unordered_map>
 #include <vector>
@@ -105,7 +106,7 @@ private:
 public:
     static ScenarioMgr* Instance();
 
-    InstanceScenario* CreateInstanceScenario(InstanceMap* map, TeamId team) const;
+    InstanceScenario* CreateInstanceScenario(InstanceMap* map, TeamId team, Optional<KeystoneItemData> keystoneItemData = {}) const;
 
     void LoadDBData();
     void LoadDB2Data();

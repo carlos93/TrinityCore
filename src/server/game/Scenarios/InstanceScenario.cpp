@@ -25,8 +25,9 @@
 #include "Player.h"
 #include "ScenarioMgr.h"
 #include "StringFormat.h"
+#include "MiscPackets.h"
 
-InstanceScenario::InstanceScenario(InstanceMap* map, ScenarioData const* scenarioData) : Scenario(map, scenarioData)
+InstanceScenario::InstanceScenario(InstanceMap* map, ScenarioData const* scenarioData, Optional<KeystoneItemData> const keystoneItemData) : Scenario(map, scenarioData, keystoneItemData)
 {
     ASSERT(_map);
     LoadInstanceData();
