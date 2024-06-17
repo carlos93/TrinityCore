@@ -454,7 +454,7 @@ void ItemAdditionalLoadInfo::Init(std::unordered_map<ObjectGuid::LowType, ItemAd
             info.KeystoneItem->Level = fields[1].GetUInt32();
 
             if (MapChallengeModeEntry const* mapChallenge = sMapChallengeModeStore.LookupEntry(fields[2].GetUInt32()))
-                info.KeystoneItem->MapId = mapChallenge;
+                info.KeystoneItem->ChallengeMapId = mapChallenge;
 
             for (uint8 i = 0; i < MAX_KEYSTONE_AFFIX; i++)
             {
@@ -484,6 +484,8 @@ Item::Item()
 
     m_randomBonusListId = 0;
     m_gemScalingLevels = { };
+
+    m_keystoneItemData = std::nullopt;
 
     memset(&_bonusData, 0, sizeof(_bonusData));
 }
@@ -1116,8 +1118,10 @@ void Item::LoadArtifactData(Player const* owner, uint64 xp, uint32 artifactAppea
 
 void Item::LoadKeystoneData(KeystoneItemData KeystoneItem)
 {
+    m_keystoneItemData = KeystoneItem;
+
     SetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_LEVEL, KeystoneItem.Level);
-    SetModifier(ITEM_MODIFIER_CHALLENGE_MAP_CHALLENGE_MODE_ID, KeystoneItem.MapId->ID);
+    SetModifier(ITEM_MODIFIER_CHALLENGE_MAP_CHALLENGE_MODE_ID, KeystoneItem.ChallengeMapId->ID);
 
     for (uint8 i = 0; i < MAX_KEYSTONE_AFFIX; i++)
         if (KeystoneItem.Affixes[i])

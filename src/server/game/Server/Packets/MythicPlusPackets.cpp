@@ -86,8 +86,15 @@ WorldPacket const* WorldPackets::MythicPlus::ChallengeModeStart::Write()
         _worldPacket << Affixes[i];
 
     _worldPacket << DeathCount;
+    _worldPacket << 0; // NYI
+
     _worldPacket.WriteBit(WasActiveKeystoneCharged);
     _worldPacket.FlushBits();
+
+    /*
+    for (Player player : players)
+        _worldPacket << player;
+    */
 
     return &_worldPacket;
 }

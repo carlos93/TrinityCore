@@ -150,7 +150,7 @@ struct AzeriteEmpoweredItemData
 struct KeystoneItemData
 {
     uint32 Level;
-    MapChallengeModeEntry const* MapId;
+    MapChallengeModeEntry const* ChallengeMapId;
     std::array<KeystoneAffixEntry const*, MAX_KEYSTONE_AFFIX> Affixes = { };
 };
 
@@ -453,6 +453,8 @@ class TC_GAME_API Item : public Object
         void SetPetitionId(uint32 petitionId) { SetUpdateFieldValue(m_values.ModifyValue(&Item::m_itemData).ModifyValue(&UF::ItemData::Enchantment, 0).ModifyValue(&UF::ItemEnchantment::ID), petitionId); }
         void SetPetitionNumSignatures(uint32 signatures) { SetUpdateFieldValue(m_values.ModifyValue(&Item::m_itemData).ModifyValue(&UF::ItemData::Enchantment, 0).ModifyValue(&UF::ItemEnchantment::Duration), signatures); }
 
+        Optional<KeystoneItemData> GetKeystoneItemData() { return m_keystoneItemData; }
+
         std::string GetDebugInfo() const override;
 
         UF::UpdateField<UF::ItemData, 0, TYPEID_ITEM> m_itemData;
@@ -475,5 +477,6 @@ class TC_GAME_API Item : public Object
         ObjectGuid m_childItem;
         std::unordered_map<uint32, uint16> m_artifactPowerIdToIndex;
         std::array<uint32, MAX_ITEM_PROTO_SOCKETS> m_gemScalingLevels;
+        Optional<KeystoneItemData> m_keystoneItemData;
 };
 #endif

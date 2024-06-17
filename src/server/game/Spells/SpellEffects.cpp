@@ -6061,28 +6061,38 @@ void Spell::EffectModifyKeystone()
     if (!target)
         return;
 
+    Optional<KeystoneItemData> keystoneItemData = itemTarget->GetKeystoneItemData();
+    if (!keystoneItemData)
+        return;
+
     WorldPackets::Item::ItemInstance itemInstanceBefore;
     itemInstanceBefore.Initialize(itemTarget);
 
     if (effectInfo->BasePoints != 0)
-        itemTarget->SetModifier(ITEM_MODIFIER_CHALLENGE_KEYSTONE_LEVEL, effectInfo->BasePoints);
+        keystoneItemData->Level = effectInfo->BasePoints;
 
     if (effectInfo->MiscValue != 0)
-        itemTarget->SetModifier(ITEM_MODIFIER_CHALLENGE_MAP_CHALLENGE_MODE_ID, effectInfo->MiscValue);
+    {
+        MapChallengeModeEntry const* mapChallengeModeEntry = sMapChallengeModeStore.LookupEntry(effectInfo->MiscValue);
+        if (mapChallengeModeEntry)
+            keystoneItemData->ChallengeMapId = mapChallengeModeEntry;
+    }
 
     if (effectInfo->MiscValueB != 0)
     {
         const uint8 maxKeystoneAffixes = 4;
         for (uint8 i = 0; i < maxKeystoneAffixes; i++)
         {
-            ItemModifier itemModifierId = static_cast<ItemModifier>(ITEM_MODIFIER_CHALLENGE_KEYSTONE_AFFIX_ID_1 + i);
-            if (itemTarget->GetModifier(itemModifierId) == 0)
+            KeystoneAffixEntry const* keystoneAffixEntry = sKeystoneAffixStore.LookupEntry(effectInfo->MiscValueB);
+            if (!keystoneItemData->Affixes[i])
             {
-                itemTarget->SetModifier(itemModifierId, effectInfo->MiscValueB);
+                keystoneItemData->Affixes[i] = keystoneAffixEntry;
                 break;
             }
         }
     }
+
+    itemTarget->LoadKeystoneData(keystoneItemData.value());
 
     WorldPackets::Item::ItemInstance itemInstanceAfter;
     itemInstanceAfter.Initialize(itemTarget);
