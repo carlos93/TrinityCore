@@ -751,7 +751,9 @@ enum class CriteriaType : int16
     CompleteTrackingQuest                          = 250, /*NYI*/
 
     GainLevels                                     = 253, // Gain levels
+    ReachHighWatermarkInEverySlot                  = 254, /*NYI*/ // Reach a High Watermark of {ilevel} in Every Slot
 
+    ReachHighWatermarkInSlot                       = 256, /*NYI*/  // Reach a High Watermark of {ilevel} in {slot}
     CompleteQuestsCountOnAccount                   = 257, /*NYI*/
 
     WarbandBankTabPurchased                        = 260, /*NYI*/

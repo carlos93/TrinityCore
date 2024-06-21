@@ -3625,10 +3625,16 @@ static int32(* const WorldStateExpressionFunctions[WSE_FUNCTION_MAX])(Map const*
                 eventTimestamp = time_t(1607439600); // December 8, 2020 8:00
                 break;
             case 123: // Shadowlands Season 1 End
-                // timestamp = unknown
+                eventTimestamp = time_t(1624935600); // June 29, 2021 5:00
                 break;
             case 149: // Shadowlands Season 2 End
-                // timestamp = unknown
+                eventTimestamp = time_t(1645416000); // February 22, 2022 5:00
+                break;
+            // case 151: // Shadowlands Season 3 End
+            //     eventTimestamp = time_t(1659495600); // August 3, 2022 5:00
+            //     break;
+            case 255: // Dragonflight Expansion Launch
+                eventTimestamp = time_t(1669672800); // November 28, 2022 23:00
                 break;
             case 260: // Dragonflight Mythic plus start
                 eventTimestamp = time_t(1670914800); // December 13, 2022 8:00
@@ -3640,7 +3646,14 @@ static int32(* const WorldStateExpressionFunctions[WSE_FUNCTION_MAX])(Map const*
                 eventTimestamp = time_t(1699945200); // November 14, 2023 8:00
                 break;
             case 352: // Dragonflight Season 3 End
-                // eventTimestamp = time_t(); unknown
+                eventTimestamp = time_t(1713841200); // April 23, 2024 5:00
+                break;
+            case 353: // Dragonflight Season 4 Start
+                eventTimestamp = time_t(1713852000); // April 23, 2024 8:00
+                break;
+            case 355: // Dragonflight Season 4 End
+            case 356: // Dragonflight Season 4 End (not sure)
+                eventTimestamp = time_t(9999999999); // Not ended
                 break;
             default:
                 break;
