@@ -65,7 +65,6 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 Count = 0;
             std::vector<MythicPlusAffix> Affixes;
         };
 
@@ -88,8 +87,6 @@ namespace WorldPackets
 
             WorldPacket const* Write() override;
 
-            uint32 RunCount;
-            uint32 RewardCount;
             int32 Season;
             int32 Subseason;
 
@@ -155,6 +152,21 @@ namespace WorldPackets
             WorldPacket const* Write() override;
 
             int32 NewDeathCount;
+        };
+
+        class TC_GAME_API ChallengeModeComplete final : public ServerPacket
+        {
+        public:
+            ChallengeModeComplete() : ServerPacket(SMSG_CHALLENGE_MODE_COMPLETE) { }
+
+            WorldPacket const* Write() override;
+
+            MythicPlusRun Run;
+            float NewDungeonScore;
+            std::vector<MythicPlusCompletedRunMember> Members;
+            bool IsPracticeRun;
+            bool IsAffixRecorded;
+            bool IsMapRecord;
         };
     }
 }

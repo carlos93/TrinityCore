@@ -28,8 +28,8 @@ WorldPacket const* WorldPackets::MythicPlus::MythicPlusSeasonData::Write()
 
 WorldPacket const* WorldPackets::MythicPlus::MythicPlusCurrentAffixes::Write()
 {
-    _worldPacket << Count;
-    for (uint32 i = 0; i < Count; i++)
+    _worldPacket << Affixes.size();
+    for (uint32 i = 0; i < Affixes.size(); i++)
     {
         _worldPacket << Affixes[i].KeystoneAffixId;
         _worldPacket << Affixes[i].RequiredSeason;
@@ -49,15 +49,15 @@ WorldPacket const* WorldPackets::MythicPlus::MythicPlusNewWeekRecord::Write()
 
 WorldPacket const* WorldPackets::MythicPlus::MythicPlusAllMapStats::Write()
 {
-    _worldPacket << RunCount;
-    _worldPacket << RewardCount;
+    _worldPacket << Runs.size();
+    _worldPacket << Rewards.size();
     _worldPacket << Season;
     _worldPacket << Subseason;
 
-    for (uint32 i = 0; i < RunCount; i++)
+    for (uint32 i = 0; i < Runs.size(); i++)
         _worldPacket << Runs[i];
 
-    for (uint32 i = 0; i < RewardCount; i++)
+    for (uint32 i = 0; i < Rewards.size(); i++)
         _worldPacket << Rewards[i];
 
     return &_worldPacket;
@@ -86,7 +86,7 @@ WorldPacket const* WorldPackets::MythicPlus::ChallengeModeStart::Write()
         _worldPacket << Affixes[i];
 
     _worldPacket << DeathCount;
-    _worldPacket << 0; // NYI
+    _worldPacket << 0; // player, NYI
 
     _worldPacket.WriteBit(WasActiveKeystoneCharged);
     _worldPacket.FlushBits();
@@ -110,5 +110,27 @@ WorldPacket const* WorldPackets::MythicPlus::ChallengeModeUpdateDeathCount::Writ
 {
     _worldPacket << NewDeathCount;
     
+    return &_worldPacket;
+}
+
+WorldPacket const* WorldPackets::MythicPlus::ChallengeModeComplete::Write()
+{
+    _worldPacket << Run;
+    _worldPacket << NewDungeonScore;
+    _worldPacket << Members.size();
+
+    _worldPacket.WriteBit(IsPracticeRun);
+    _worldPacket.WriteBit(IsAffixRecorded);
+    _worldPacket.WriteBit(IsMapRecord);
+    _worldPacket.FlushBits();
+
+    for (MythicPlusCompletedRunMember const& Member : Members)
+    {
+        _worldPacket << Member.PlayerGuid;
+        _worldPacket.WriteBits(Member.PlayerName.size(), 7);
+        _worldPacket.WriteBit(Member.IsElegibleForScore);
+        _worldPacket.WriteString(Member.PlayerName);
+    }
+
     return &_worldPacket;
 }

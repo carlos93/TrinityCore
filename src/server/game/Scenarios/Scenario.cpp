@@ -30,7 +30,7 @@
 
 Scenario::Scenario(Map* map, ScenarioData const* scenarioData, Optional<KeystoneItemData> const keystoneItemData) : _map(map), _data(scenarioData),
     _guid(ObjectGuid::Create<HighGuid::Scenario>(map->GetId(), scenarioData->Entry->ID, map->GenerateLowGuid<HighGuid::Scenario>())),
-    _currentstep(nullptr), _keystoneItemData(keystoneItemData), _deathCount(0), _timerSent(false), _timerStartChallenge{}, _challengeStartTime(std::nullopt)
+    _currentstep(nullptr), _keystoneItemData(keystoneItemData), _deathCount(0), _timerSent(false), _timerStartChallenge{}, _challengeStartTime(std::nullopt), _challengeFinalDuration(std::nullopt)
 {
     ASSERT(_data);
 
@@ -92,6 +92,19 @@ void Scenario::CompleteScenario()
 {
     SendPacket(WorldPackets::Scenario::ScenarioCompleted(_data->Entry->ID).Write());
 
+    _challengeFinalDuration = GameTime::GetSystemTime();
+
+    if (IsMythicPlusChallenge())
+    {
+        DoForAllPlayers([&](Player* player)
+        {
+            SendChallengeModeComplete(player);
+
+            // if (player->IsMythicPlusWeekRecord())
+                SendMythicPlusNewWeekRecord(player);
+        });
+    }
+
     DoForAllPlayers([&](Player* player)
     {
         player->UpdateCriteria(CriteriaType::CompleteAnyScenario, 1);
@@ -122,7 +135,7 @@ void Scenario::OnPlayerEnter(Player* player)
 {
     _players.insert(player->GetGUID());
 
-    if (_keystoneItemData)
+    if (IsMythicPlusChallenge())
     {
         // If its the first player to enter the challenge, start timer
         if (!_challengeStartTime.has_value())
@@ -132,12 +145,12 @@ void Scenario::OnPlayerEnter(Player* player)
         }
 
         // If challenge is on preparation phase, send timer according with time left, otherwise send current elapsed timer
-        if (GetSecondsSinceChallengeStart() < WAIT_SECONDS_UNTIL_CHALLENGE_START)
+        if (GetMSSinceChallengeStart().count() < (WAIT_SECONDS_UNTIL_CHALLENGE_START * IN_MILLISECONDS))
         {
             WorldPackets::Misc::StartTimer timer;
             timer.TotalTime = Seconds(WAIT_SECONDS_UNTIL_CHALLENGE_START);
             timer.Type = CountdownTimerType::ChallengeMode;
-            timer.TimeLeft = Seconds(WAIT_SECONDS_UNTIL_CHALLENGE_START - GetSecondsSinceChallengeStart());
+            timer.TimeLeft = Seconds(WAIT_SECONDS_UNTIL_CHALLENGE_START - std::chrono::duration_cast<Seconds>(GetMSSinceChallengeStart()).count());
             player->SendDirectMessage(timer.Write());
         }
         else
@@ -397,6 +410,98 @@ void Scenario::SendChallengeModeStart(Player const* player) const
     player->SendDirectMessage(start.Write());
 }
 
+float Scenario::CalculateChallengeScore() const
+{
+    MapChallengeModeEntry const* mapChallengeModeEntry = _keystoneItemData->ChallengeMapId;
+    if (!mapChallengeModeEntry)
+        return 0.0f;
+
+    float thresholdVariance = 0.4f;
+    int32 secondsElapsedInChallenge = std::chrono::duration_cast<Seconds>(GetChallengeTimeElapsed()).count();
+    float minTimeForBonus = mapChallengeModeEntry->CriteriaCount[0] * (1.0f + thresholdVariance);
+    if (secondsElapsedInChallenge > minTimeForBonus)
+        return 0.0f;
+
+    uint32 affixesBonus = 0;
+    uint32 level = _keystoneItemData->Level;
+    if (level >= 10)
+        affixesBonus = 30;
+    else if (level >= 5)
+        affixesBonus = 20;
+    else if (level >= 2)
+        affixesBonus = 10;
+    // Can't be level 1 or less mythic+
+    else
+        return 0.0f;
+
+    int32 msElapsedInChallenge = GetChallengeTimeElapsed().count();
+    float maxTimeForBonus = mapChallengeModeEntry->CriteriaCount[0] * (1.0f - thresholdVariance) * static_cast<float>(IN_MILLISECONDS);
+    float bonusScore = msElapsedInChallenge <= maxTimeForBonus ? 1.0f : maxTimeForBonus / msElapsedInChallenge;
+    float score = 70 + (bonusScore * 5.0f) + (level * 2) + affixesBonus;
+    return score;
+}
+
+void Scenario::SendChallengeModeComplete(Player const* player) const
+{
+    float newDungeonScore = CalculateChallengeScore();
+    float oldPlayerScore = player->GetMythicPlusScore();
+    float newPlayerScore = 0.0f; // player->UpdateMythicPlusScore();
+
+    WorldPackets::MythicPlus::ChallengeModeComplete scenarioComplete;
+    scenarioComplete.Run = CreateChallengeModeRunInfo(newDungeonScore);
+    scenarioComplete.NewDungeonScore = newPlayerScore;
+    scenarioComplete.IsPracticeRun = false;
+    scenarioComplete.IsAffixRecorded = true;
+    scenarioComplete.IsMapRecord = false;
+
+    for (ObjectGuid const& playerGuid : _players)
+    {
+        Player* playerMember = ObjectAccessor::GetPlayer(_map, playerGuid);
+        if (!playerMember)
+            continue;
+
+        WorldPackets::MythicPlus::MythicPlusCompletedRunMember member;
+        member.PlayerGuid = playerGuid;
+        member.IsElegibleForScore = newPlayerScore != oldPlayerScore;
+        member.PlayerName = playerMember->GetName();
+        scenarioComplete.Members.push_back(member);
+    }
+
+    player->SendDirectMessage(scenarioComplete.Write());
+
+    StoreNewMythicPlusRun(scenarioComplete);
+}
+
+void Scenario::SendMythicPlusNewWeekRecord(Player const* player) const
+{
+    WorldPackets::MythicPlus::MythicPlusNewWeekRecord record;
+    record.MapChallengeModeID = _keystoneItemData->ChallengeMapId->ID;
+    record.KeystoneLevel = _keystoneItemData->Level;
+    record.CompletionTime = GetChallengeTimeElapsed().count();
+    player->SendDirectMessage(record.Write());
+}
+
+WorldPackets::MythicPlus::MythicPlusRun Scenario::CreateChallengeModeRunInfo(float dungeonScore) const
+{
+    WorldPackets::MythicPlus::MythicPlusRun Run;
+    Run.MapChallengeModeID = _keystoneItemData->ChallengeMapId->ID;
+    Run.Level = _keystoneItemData->Level;
+    Run.DurationMs = GetChallengeTimeElapsed().count();
+    Run.StartDate = _challengeStartTime.value();
+    Run.CompletionDate = _challengeFinalDuration.value();
+    Run.Season = 0; // Seems unfilled in sniffs
+    Run.RunScore = dungeonScore;
+    Run.Completed = dungeonScore > 0;
+    Run.Members.clear(); // Seems empty
+    
+    for (uint8 i = 0; i < _keystoneItemData->Affixes.size(); i++)
+    {
+        Run.KeystoneAffixIDs[i] = _keystoneItemData->Affixes[i] ? _keystoneItemData->Affixes[i]->ID : 0;
+    }
+
+    return Run;
+}
+
 std::vector<WorldPackets::Scenario::BonusObjectiveData> Scenario::GetBonusObjectivesData() const
 {
     std::vector<WorldPackets::Scenario::BonusObjectiveData> bonusObjectivesData;
@@ -447,13 +552,57 @@ void Scenario::SendBootPlayer(Player const* player) const
     player->SendDirectMessage(scenarioBoot.Write());
 }
 
-void Scenario::SendElapsedTimer(Player const* player, uint32 timeElapsed) const
+void Scenario::SendElapsedTimer(Player const* player, Milliseconds timeElapsed) const
 {
     WorldPackets::Misc::StartElapsedTimer startElapsedTimer;
     WorldPackets::Misc::ElapsedTimer elapsedTimer;
-    elapsedTimer.TimerId = timeElapsed;
+    elapsedTimer.TimerId = std::chrono::duration_cast<Seconds>(timeElapsed).count();
     elapsedTimer.CurrentDuration = 0;
     elapsedTimer.Unk = 1;
     startElapsedTimer.Timer = elapsedTimer;
     player->SendDirectMessage(startElapsedTimer.Write());
+}
+
+void Scenario::StoreNewMythicPlusRun(WorldPackets::MythicPlus::ChallengeModeComplete const& challengeModeComplete) const
+{
+    CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
+    
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_MYTHIC_PLUS_RUN_MAXID);
+    PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+    uint64 mythicPlusRunId = 0;
+    if (result)
+    {
+        Field* fields = result->Fetch();
+        mythicPlusRunId = fields[0].GetUInt64() + 1;
+    }
+    else
+        return;
+    
+    uint32 index = 0;
+
+    stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_MYTHIC_PLUS_RUN);
+    stmt->setUInt64(  index, mythicPlusRunId);
+    stmt->setUInt32(++index, challengeModeComplete.Run.MapChallengeModeID);
+    stmt->setUInt32(++index, challengeModeComplete.Run.Level);
+    stmt->setUInt64(++index, challengeModeComplete.Run.StartDate);
+    stmt->setUInt64(++index, challengeModeComplete.Run.CompletionDate);
+    stmt->setUInt32(++index, challengeModeComplete.Run.Season);
+    stmt->setUInt32(++index, challengeModeComplete.Run.KeystoneAffixIDs[0]);
+    stmt->setUInt32(++index, challengeModeComplete.Run.KeystoneAffixIDs[1]);
+    stmt->setUInt32(++index, challengeModeComplete.Run.KeystoneAffixIDs[2]);
+    stmt->setUInt32(++index, challengeModeComplete.Run.KeystoneAffixIDs[3]);
+    stmt->setFloat (++index, challengeModeComplete.Run.RunScore);
+    trans->Append(stmt);
+
+    for (const auto playerRun : challengeModeComplete.Members)
+    {
+        index = 0;
+        stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHARACTER_MYTHIC_PLUS_RUN);
+        stmt->setUInt64(  index, mythicPlusRunId);
+        stmt->setUInt64(++index, playerRun.PlayerGuid.GetCounter());
+        trans->Append(stmt);
+    }
+
+    CharacterDatabase.CommitTransaction(trans);
 }

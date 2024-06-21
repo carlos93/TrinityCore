@@ -17721,6 +17721,31 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::BnetAccount), GetSession()->GetBattlenetAccountGUID());
     SetUpdateFieldValue(m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::GuildClubMemberID), Battlenet::Services::Clubs::CreateClubMemberId(guid));
 
+    WorldPackets::MythicPlus::DungeonScoreData scoreData;
+    scoreData.TotalRuns = 0;
+
+    auto dungeonScoreUF = m_values.ModifyValue(&Player::m_playerData).ModifyValue(&UF::PlayerData::DungeonScore);
+    SetUpdateFieldValue(dungeonScoreUF.ModifyValue(&WorldPackets::MythicPlus::DungeonScoreSummary::LadderScoreCurrentSeason), 2000);
+    SetUpdateFieldValue(dungeonScoreUF.ModifyValue(&WorldPackets::MythicPlus::DungeonScoreSummary::OverallScoreCurrentSeason), 2000);
+
+    std::vector<WorldPackets::MythicPlus::DungeonScoreMapSummary> scoreSummary;
+    std::vector<int32> mapsIds {399, 400, 401, 402, 403, 404, 405, 406};
+    for (uint8 i = 0; i < 8; i++)
+    {
+        WorldPackets::MythicPlus::DungeonScoreMapSummary mapSummary;
+        mapSummary.ChallengeModeID = mapsIds[i];
+        mapSummary.BestRunDurationMS = 10000;
+        mapSummary.BestRunLevel = 10;
+        mapSummary.FinishedSuccess = true;
+        mapSummary.MapScore = 200;
+        scoreSummary.push_back(mapSummary);
+    }
+
+    // auto runScore = dungeonScoreUF.ModifyValue(&WorldPackets::MythicPlus::DungeonScoreSummary::Runs);
+    // SetUpdateFieldValue(runScore, std::move(scoreSummary));
+    
+    // SetUpdateFieldValue(m_values.ModifyValue(&Player::m_activePlayerData).ModifyValue(&UF::ActivePlayerData::DungeonScore), scoreData);
+
     if (!IsValidGender(fields.gender))
     {
         TC_LOG_ERROR("entities.player.loading", "Player::LoadFromDB: Player ({}) has wrong gender ({}), can't load.", guid.ToString(), uint32(fields.gender));
@@ -30517,4 +30542,58 @@ bool Player::CanExecutePendingSpellCastRequest()
         return false;
 
     return true;
+}
+
+float Player::GetMythicPlusScore() const
+{
+    return 0.0f;
+}
+
+std::vector<WorldPackets::MythicPlus::MythicPlusRun> Player::GetMapStats() const
+{
+    std::vector<WorldPackets::MythicPlus::MythicPlusRun> runs;
+
+    CharacterDatabasePreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHARACTER_MYTHIC_PLUS_RUN_BY_CHAR);
+    stmt->setUInt64(0, GetGUID().GetCounter());
+    PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+    if (result)
+    {
+        do
+        {
+            Field* field = result->Fetch();
+            uint32 mapChallengeId = field[0].GetUInt32();
+            uint32 level =          field[1].GetUInt32();
+            uint64 startDate =      field[2].GetUInt64();
+            uint64 endDate =        field[3].GetUInt64();
+            uint32 season =         field[4].GetUInt32();
+            uint32 keystoneAffix1 = field[5].GetUInt32();
+            uint32 keystoneAffix2 = field[6].GetUInt32();
+            uint32 keystoneAffix3 = field[7].GetUInt32();
+            uint32 keystoneAffix4 = field[8].GetUInt32();
+            float runScore =        field[9].GetFloat();
+
+            MapChallengeModeEntry const* mapChallengeModeEntry = sMapChallengeModeStore.LookupEntry(mapChallengeId);
+            if (!mapChallengeModeEntry)
+                continue;
+
+            WorldPackets::MythicPlus::MythicPlusRun run;
+            run.MapChallengeModeID = mapChallengeId;
+            run.Level = level;
+            run.StartDate = startDate;
+            run.CompletionDate = endDate;
+            run.DurationMs = endDate - startDate;
+            run.KeystoneAffixIDs[0] = keystoneAffix1;
+            run.KeystoneAffixIDs[1] = keystoneAffix2;
+            run.KeystoneAffixIDs[2] = keystoneAffix3;
+            run.KeystoneAffixIDs[3] = keystoneAffix4;
+            run.RunScore = runScore;
+            run.Season = season;
+            run.Completed = static_cast<int32>(run.DurationMs / IN_MILLISECONDS) < mapChallengeModeEntry->CriteriaCount[0];
+            runs.push_back(run);
+        }
+        while (result->NextRow());
+    }
+
+    return runs;
 }

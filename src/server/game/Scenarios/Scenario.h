@@ -42,6 +42,11 @@ namespace WorldPackets
         struct BonusObjectiveData;
         class ScenarioState;
     }
+
+    namespace MythicPlus
+    {
+        class ChallengeModeComplete;
+    }
 }
 
 enum ScenarioStepState
@@ -84,7 +89,11 @@ class TC_GAME_API Scenario : public CriteriaHandler
         void SendScenarioState(Player const* player) const;
         void SendBootPlayer(Player const* player) const;
         void SendChallengeModeStart(Player const* player) const;
-        void SendElapsedTimer(Player const* player, uint32 timeElapsed) const;
+        void SendChallengeModeComplete(Player const* player) const;
+        void SendMythicPlusNewWeekRecord(Player const* player) const;
+        void SendElapsedTimer(Player const* player, Milliseconds timeElapsed) const;
+
+        bool IsMythicPlusChallenge() const { return _keystoneItemData.has_value(); }
 
     protected:
         Map const* _map;
@@ -105,16 +114,20 @@ class TC_GAME_API Scenario : public CriteriaHandler
 
         void BuildScenarioStateFor(Player const* player, WorldPackets::Scenario::ScenarioState* scenarioState) const;
 
+        void StoreNewMythicPlusRun(WorldPackets::MythicPlus::ChallengeModeComplete const& challengeModeComplete) const;
+
         std::vector<WorldPackets::Scenario::BonusObjectiveData> GetBonusObjectivesData() const;
         std::vector<WorldPackets::Achievement::CriteriaProgress> GetCriteriasProgressFor(Player const* player) const;
+        WorldPackets::MythicPlus::MythicPlusRun CreateChallengeModeRunInfo(float dungeonScore) const;
 
         CriteriaList const& GetCriteriaByType(CriteriaType type, uint32 asset) const override;
         ScenarioData const* _data;
 
         Optional<KeystoneItemData> GetKeystoneItemData() const { return _keystoneItemData; }
 
-        uint32 GetChallengeTimeElapsed() const { return GetSecondsSinceChallengeStart() + (_deathCount * SECONDS_LOST_PER_DEATH) - WAIT_SECONDS_UNTIL_CHALLENGE_START; }
-        uint32 GetSecondsSinceChallengeStart() const { return uint32(std::max(0LL, std::chrono::duration_cast<Seconds>(GameTime::GetSystemTime() - _challengeStartTime.value()).count())); }
+        float CalculateChallengeScore() const;
+        Milliseconds GetChallengeTimeElapsed() const { return GetMSSinceChallengeStart() + Milliseconds((static_cast<int32>(_deathCount * SECONDS_LOST_PER_DEATH) - WAIT_SECONDS_UNTIL_CHALLENGE_START) * IN_MILLISECONDS); }
+        Milliseconds GetMSSinceChallengeStart() const { return std::max(0ms, std::chrono::duration_cast<Milliseconds>(GameTime::GetSystemTime() - _challengeStartTime.value())); }
 
     private:
         ObjectGuid const _guid;
@@ -124,6 +137,7 @@ class TC_GAME_API Scenario : public CriteriaHandler
         Optional<int32> _timerStartChallenge;
         uint32 _deathCount;
         Optional<SystemTimePoint> _challengeStartTime;
+        Optional<SystemTimePoint> _challengeFinalDuration;
         bool _timerSent;
 };
 

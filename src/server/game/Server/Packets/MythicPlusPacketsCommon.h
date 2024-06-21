@@ -20,12 +20,13 @@
 
 #include "ObjectGuid.h"
 #include "PacketUtilities.h"
+#include "UpdateField.h"
 
 namespace WorldPackets
 {
     namespace MythicPlus
     {
-        struct DungeonScoreMapSummary
+        struct DungeonScoreMapSummary : public UF::IsUpdateFieldStructureTag
         {
             int32 ChallengeModeID = 0;
             float MapScore = 0.0f;
@@ -34,7 +35,7 @@ namespace WorldPackets
             bool FinishedSuccess = false;
         };
 
-        struct DungeonScoreSummary
+        struct DungeonScoreSummary : public UF::IsUpdateFieldStructureTag
         {
             float OverallScoreCurrentSeason = 0.0f;
             float LadderScoreCurrentSeason = 0.0f;
@@ -78,6 +79,13 @@ namespace WorldPackets
             int64 Field_10 = 0;
             int64 Field_20 = 0;
             bool Field_24 = false;
+        };
+
+        struct MythicPlusCompletedRunMember
+        {
+            ObjectGuid PlayerGuid;
+            std::string PlayerName;
+            bool IsElegibleForScore;
         };
 
         struct DungeonScoreBestRunForAffix

@@ -35,14 +35,11 @@ void WorldSession::HandleRequestMythicPlusAffixes(WorldPackets::MythicPlus::Requ
 {
     WorldPackets::MythicPlus::MythicPlusCurrentAffixes response;
 
-    // for (const auto mythicPlusSeasonTrackedAffix : sMythicPlusSeasonTrackedAffixStore)
-    // {
-    //     if (mythicPlusSeasonTrackedAffix->DisplaySeasonID == 23)
-    //         response.Affixes.push_back({mythicPlusSeasonTrackedAffix->KeystoneAffixID, 0});
-    // }
-
-    // response.Count = response.Affixes.size();
-    response.Count = 0;
+    std::vector<int32> affixes {9, 136, 137 };
+    for (const auto affix : affixes)
+    {
+        response.Affixes.push_back({affix, 0});
+    }
     SendPacket(response.Write());
 }
 
@@ -52,34 +49,7 @@ void WorldSession::HandleMythicPlusRequestMapStats(WorldPackets::MythicPlus::Myt
     response.Season = 12;
     response.Subseason = 94;
 
-    // std::vector<MapChallengeModeEntry*> instances;
-
-    // for (const auto mythicPlusSeasonTrackedMap : sMythicPlusSeasonTrackedMapStore)
-    // {
-    //     if (mythicPlusSeasonTrackedMap->DisplaySeasonID == 23)
-    //     {
-    //         MapChallengeModeEntry const* mapChallenge = sMapChallengeModeStore.LookupEntry(mythicPlusSeasonTrackedMap->MapChallengeModeID);
-    //         if (mapChallenge)
-    //             instances.push_back(mapChallenge);
-    //     }
-    // }
-
-    // response.RunCount = instances.size();
-
-    // for (MapChallengeModeEntry* const instance : instances)
-    // {
-    //     WorldPackets::MythicPlus::MythicPlusRun run;
-
-    //     run.MapChallengeModeID = instance->ID;
-    //     run.Level = 1;
-    //     run.Completed = true;
-    //     run.Season = 12;
-    //     run.RunScore = 200;
-
-    //     response.Runs.push_back(run);
-    // }
-
-    response.RewardCount = 0;
+    response.Runs = _player->GetMapStats();
     SendPacket(response.Write());
 }
 

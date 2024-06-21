@@ -161,6 +161,9 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_INS_CHARACTER_FAVORITE_AUCTION, "INSERT INTO character_favorite_auctions (guid, `order`, itemId, itemLevel, battlePetSpeciesId, suffixItemNameDescriptionId) VALUE (?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_FAVORITE_AUCTION, "DELETE FROM character_favorite_auctions WHERE guid = ? AND `order` = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_DEL_CHARACTER_FAVORITE_AUCTIONS_BY_CHAR, "DELETE FROM character_favorite_auctions WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHARACTER_MYTHIC_PLUS_RUN, "INSERT INTO character_mythic_plus_member (mythicPlusRunId, playerGuid) VALUES (?,?)", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_CHARACTER_MYTHIC_PLUS_RUN_BY_CHAR, "SELECT mapChallengeId, level, startDate, endDate, season, keystoneAffix1, keystoneAffix2, keystoneAffix3, keystoneAffix4, runScore FROM mythic_plus_runs mpr LEFT JOIN character_mythic_plus_member cmpm ON mpr.id = cmpm.mythicPlusRunId WHERE cmpm.playerGuid = ?", CONNECTION_SYNCH);
+    
     PrepareStatement(CHAR_SEL_ACCOUNT_INSTANCELOCKTIMES, "SELECT instanceId, releaseTime FROM account_instance_times WHERE accountId = ?", CONNECTION_ASYNC);
 
     PrepareStatement(CHAR_SEL_CHARACTER_ACTIONS_SPEC, "SELECT button, action, type FROM character_action WHERE guid = ? AND spec = ? AND traitConfigId = ? ORDER BY button", CONNECTION_ASYNC);
@@ -267,6 +270,8 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_SEL_MATCH_MAKER_RATING, "SELECT matchMakerRating FROM character_arena_stats WHERE guid = ? AND slot = ?", CONNECTION_SYNCH);
     PrepareStatement(CHAR_SEL_CHARACTER_COUNT, "SELECT account, COUNT(guid) FROM characters WHERE account = ? GROUP BY account", CONNECTION_ASYNC);
     PrepareStatement(CHAR_UPD_NAME_BY_GUID, "UPDATE characters SET name = ? WHERE guid = ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_SEL_MYTHIC_PLUS_RUN_MAXID, "SELECT MAX(id) FROM mythic_plus_runs", CONNECTION_SYNCH);
+    PrepareStatement(CHAR_INS_MYTHIC_PLUS_RUN, "INSERT INTO mythic_plus_runs (id, mapChallengeId, level, startDate, endDate, season, keystoneAffix1, keystoneAffix2, keystoneAffix3, keystoneAffix4, runScore) VALUES (?,?,?,?,?,?,?,?,?,?,?)", CONNECTION_ASYNC);
 
     // Guild handling
     // 0: uint32, 1: string, 2: uint32, 3: string, 4: string, 5: uint64, 6-10: uint32, 11: uint64
