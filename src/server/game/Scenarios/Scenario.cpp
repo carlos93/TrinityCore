@@ -30,7 +30,7 @@
 
 Scenario::Scenario(Map* map, ScenarioData const* scenarioData, Optional<KeystoneItemData> const keystoneItemData) : _map(map), _data(scenarioData),
     _guid(ObjectGuid::Create<HighGuid::Scenario>(map->GetId(), scenarioData->Entry->ID, map->GenerateLowGuid<HighGuid::Scenario>())),
-    _currentstep(nullptr), _keystoneItemData(keystoneItemData), _deathCount(0), _timerSent(false), _timerStartChallenge{}, _challengeStartTime(std::nullopt), _challengeFinalDuration(std::nullopt)
+    _currentstep(nullptr), _keystoneItemData(keystoneItemData), _deathCount(0), _timerStartChallenge{}, _challengeStartTime(std::nullopt), _challengeFinalDuration(std::nullopt), _timerSent(false)
 {
     ASSERT(_data);
 
