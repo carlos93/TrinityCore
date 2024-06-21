@@ -1322,11 +1322,11 @@ public:
 
         uint32 counter = 0;
         uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
-        LocaleConstant locale = handler->GetSessionDbcLocale();
 
         // search in Map.dbc
         for (uint32 id = 0; id < sMapStore.GetNumRows(); id++)
         {
+            LocaleConstant locale = handler->GetSessionDbcLocale();
             if (MapEntry const* mapInfo = sMapStore.LookupEntry(id))
             {
                 std::string name = mapInfo->MapName[locale];
